@@ -947,7 +947,13 @@
         const name = String(data.get('name') || '').trim();
         const nextDate = String(data.get('nextDate') || '');
         const cadence = String(data.get('cadence') || 'P1M');
-        if (!name || !nextDate) return;
+        if (!name) {
+          // 공백만 입력하면 required 검사를 통과하므로, 조용히 멈추지 않고 안내 후 입력란으로 되돌림
+          showToast('할 일 이름을 입력해 주세요.');
+          document.getElementById('routineName').focus();
+          return;
+        }
+        if (!nextDate) return;
         const old = routines.find(item => item.id === editingRoutineId);
         const id = old?.id || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
         const updated = { ...(old || {}), id, name, nextDate, cadence, createdAt: old?.createdAt || today, lastDone: old?.lastDone || '' };
