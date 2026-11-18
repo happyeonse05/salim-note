@@ -90,6 +90,9 @@
     .empty-state { display: grid; justify-items: center; gap: 8px; padding: 23px 12px 20px; color: var(--muted); text-align: center; }
     .empty-state strong { color: #4b514b; font-size: 11px; }
     .empty-state span { font-size: 10px; line-height: 1.6; }
+    .activity-empty { grid-template-columns: minmax(0,1fr) 128px; align-items: center; justify-items: stretch; gap: 14px; min-height: 118px; padding: 6px 6px 6px 2px; text-align: left; }
+    .activity-empty-copy { display: grid; gap: 7px; }
+    .activity-empty img { display: block; width: 128px; max-width: 100%; height: auto; object-fit: contain; }
     .activity-list { display: grid; }
     .activity-row { display: flex; align-items: center; min-height: 58px; border-top: 1px solid #f0efe8; }
     .activity-row:first-child { border-top: 0; }
@@ -229,6 +232,8 @@
       .content-grid { grid-template-columns: 1fr; gap: 11px; }
       .panel { padding: 15px 13px; border-radius: 10px; }
       .panel-title { font-size: 13px; }
+      .activity-empty { grid-template-columns: minmax(0,1fr) 104px; min-height: 104px; gap: 6px; padding-right: 2px; }
+      .activity-empty img { width: 104px; }
       .quick-panel { margin-top: 11px; padding: 15px; }
       .quick-actions { grid-template-columns: repeat(2, 1fr); }
       .quick-action { min-height: 43px; padding: 7px 9px; font-size: 9px; }
@@ -1004,7 +1009,7 @@
         }
         const activity = sortedRecords().slice(0,4);
         const activityList = document.getElementById('activityList');
-        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div>`;
+        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state activity-empty"><div class="activity-empty-copy"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div><img src="assets/salim-empty-optimized.png" alt="" aria-hidden="true"></div>`;
       }
       function viewItems() {
         if (currentView === 'expiry') return sortedRecords(records.filter(x => x.kind === 'food' || x.kind === 'cosmetic'));
