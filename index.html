@@ -1344,8 +1344,17 @@
       document.getElementById('shoppingItems').addEventListener('click', event => {
         const button = event.target.closest('[data-shopping-remove]');
         if (!button) return;
-        shoppingList = shoppingList.filter(item => item.id !== button.dataset.shoppingRemove);
+        const index = shoppingList.findIndex(item => item.id === button.dataset.shoppingRemove);
+        if (index < 0) return;
+        const [removed] = shoppingList.splice(index, 1);
         saveShoppingList(); renderShoppingList();
+        // Keep keyboard focus in the list: move to the item that took the removed one's place, or to the input when the list is empty.
+        const remaining = document.querySelectorAll('#shoppingItems [data-shopping-remove]');
+        (remaining[index] || remaining[index - 1] || document.getElementById('shoppingItemInput')).focus();
+        showToast(`'${removed.name}'을(를) 목록에서 뺐어요.`, { label: '되돌리기', onClick: () => {
+          shoppingList.splice(Math.min(index, shoppingList.length), 0, removed);
+          saveShoppingList(); renderShoppingList();
+        } });
       });
       document.getElementById('saveShoppingPurchase').addEventListener('click', saveCheckedShoppingItems);
       document.getElementById('routineForm').addEventListener('submit', saveRoutine);
