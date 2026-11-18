@@ -1089,12 +1089,26 @@
         document.getElementById('listCaption').textContent = titleMap[currentView]?.[1] || '';
         document.getElementById('expiryFilters').hidden = currentView !== 'expiry';
         document.querySelectorAll('[data-expiry-filter]').forEach(chip => chip.classList.toggle('active', chip.dataset.expiryFilter === expiryFilter));
+        if (currentView === 'expiry') {
+          // 칩에 각 구간 개수를 함께 표시해 필터를 누르기 전에 규모를 알 수 있게 함
+          const expiryRecords = records.filter(x => x.kind === 'food' || x.kind === 'cosmetic');
+          const counts = { all: expiryRecords.length, expired: 0, week: 0, later: 0 };
+          expiryRecords.forEach(x => { counts[expiryBucket(x)] += 1; });
+          const chipLabels = { all: '전체', expired: '지남', week: '7일 이내', later: '그 이후' };
+          document.querySelectorAll('[data-expiry-filter]').forEach(chip => {
+            const key = chip.dataset.expiryFilter;
+            chip.textContent = `${chipLabels[key]} ${counts[key]}`;
+          });
+        }
         const q = document.getElementById('searchInput').value.trim().toLowerCase();
         let items = viewItems().filter(item => !q || [item.name, item.note, labels[item.kind]].filter(Boolean).join(' ').toLowerCase().includes(q));
         if (document.getElementById('sortSelect').value === 'oldest') items = items.reverse();
         const list = document.getElementById('recordList');
         if (!items.length) {
-          list.innerHTML = `<div class="panel empty-state"><strong>${q ? '검색 결과 없음' : '기록 없음'}</strong><span>${q ? '다른 검색어를 입력하세요.' : '새 기록 버튼으로 항목을 추가하세요.'}</span></div>`;
+          const filtered = currentView === 'expiry' && expiryFilter !== 'all' && !q;
+          const emptyTitle = q ? '검색 결과 없음' : filtered ? '이 기간의 기록이 없어요' : '기록 없음';
+          const emptyBody = q ? '다른 검색어를 입력하세요.' : filtered ? '다른 기간 필터를 선택해 보세요.' : '새 기록 버튼으로 항목을 추가하세요.';
+          list.innerHTML = `<div class="panel empty-state"><strong>${emptyTitle}</strong><span>${emptyBody}</span></div>`;
           return;
         }
         list.innerHTML = items.map(item => recordCard(item)).join('');
