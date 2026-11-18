@@ -1474,7 +1474,18 @@
         if (rows.length <= 1) { showToast('복용 시간은 한 개 이상 필요합니다.'); return; }
         e.target.closest('.med-time-row').remove();
       });
-      const doseClick = e => { const button = e.target.closest('[data-dose-id]'); if (button) toggleDose(button.dataset.doseId, button.dataset.doseTime); };
+      const doseClick = e => {
+        const button = e.target.closest('[data-dose-id]');
+        if (!button) return;
+        const container = e.currentTarget;
+        const { doseId, doseTime } = button.dataset;
+        const wasDone = Boolean(medicationChecks[doseKey(doseId, today, doseTime)]);
+        toggleDose(doseId, doseTime);
+        // 복용 상태가 바뀌면 버튼이 다시 그려지므로, 같은 복용 항목의 버튼으로 포커스를 되돌림
+        const next = [...container.querySelectorAll('[data-dose-id]')].find(item => item.dataset.doseId === doseId && item.dataset.doseTime === doseTime);
+        next?.focus({ preventScroll: true });
+        showToast(wasDone ? '복용 체크를 취소했어요.' : '복용을 기록했어요.');
+      };
       document.getElementById('dashboardDoseList').addEventListener('click', doseClick);
       document.getElementById('medDoseList').addEventListener('click', doseClick);
       document.getElementById('medList').addEventListener('click', e => {
