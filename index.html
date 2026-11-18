@@ -556,7 +556,7 @@
           <div class="shopping-list-footer"><span id="shoppingCheckedCount">체크한 항목 0개</span><button class="secondary-button" id="saveShoppingPurchase" type="button" disabled>구매 기록에 담기</button></div>
         </section>
         <div class="record-list" id="recordList"></div>
-        <div class="storage-note">기록·사진·일정은 이 브라우저에 저장됩니다. <button class="text-button" id="backupInline">백업 파일 만들기</button></div>
+        <div class="storage-note">기록·사진·일정은 이 브라우저에 저장됩니다. <button class="text-button" id="backupInline">백업 파일 만들기</button> · <button class="text-button" id="exportCsv" type="button">전체 기록 CSV 저장</button></div>
       </section>
 
       <section class="med-section" id="medSection">
@@ -1321,6 +1321,30 @@
         const blob = new Blob([JSON.stringify({ app: '살림 기록', version: 3, exportedAt: new Date().toISOString(), records, medicines, medicationChecks, routines, shoppingList }, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `살림기록-백업-${today}.json`; a.click(); URL.revokeObjectURL(url); showToast('백업 파일을 만들었어요.');
       }
+      function csvCell(value) {
+        let text = value == null ? '' : String(value);
+        // 스프레드시트가 수식으로 해석하지 않도록 시작 문자를 보호
+        if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+        return `"${text.replace(/"/g, '""')}"`;
+      }
+      function exportRecordsCsv() {
+        if (!records.length) { showToast('내보낼 기록이 아직 없어요.'); return; }
+        const header = ['종류', '이름', '날짜', '사용기한', '메모', '금액(원)'];
+        const rows = sortedRecords().map(item => [
+          labels[item.kind] || item.kind,
+          item.name,
+          activityDate(item),
+          safeDeadline(item),
+          item.note,
+          item.amount
+        ]);
+        // BOM을 붙여 엑셀에서도 한글이 깨지지 않게 함
+        const csv = '﻿' + [header, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a');
+        a.href = url; a.download = `살림기록-전체기록-${today}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast(`${rows.length}개 기록을 CSV 파일로 저장했어요.`);
+      }
       async function importData(file) {
         try {
           const parsed = JSON.parse(await file.text()); const incoming = Array.isArray(parsed) ? parsed : parsed.records;
@@ -1462,6 +1486,7 @@
       document.getElementById('closePhotoViewer').addEventListener('click', closePhoto);
       document.getElementById('exportButton').addEventListener('click', exportData);
       document.getElementById('backupInline').addEventListener('click', exportData);
+      document.getElementById('exportCsv').addEventListener('click', exportRecordsCsv);
       document.getElementById('importButton').addEventListener('click', () => document.getElementById('importFile').click());
       document.getElementById('importFile').addEventListener('change', e => { const file = e.target.files?.[0]; if (file) importData(file); e.target.value = ''; });
       document.addEventListener('keydown', e => {
