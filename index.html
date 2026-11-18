@@ -644,6 +644,8 @@
       let currentType = 'laundry';
       let editingItem = null;
       let editingMedicineId = null;
+      let recordReturnFocus = null;
+      let medicationReturnFocus = null;
       let editingRoutineId = null;
       let toastTimer;
 
@@ -1079,6 +1081,7 @@
         render(); window.scrollTo({ top: 0, behavior: 'smooth' });
       }
       function openModal(type = 'laundry', item = null) {
+        recordReturnFocus = document.activeElement;
         editingItem = item ? { ...item } : null;
         currentType = editingItem?.kind || type;
         document.getElementById('typeTabs').style.display = editingItem ? 'none' : 'grid';
@@ -1087,7 +1090,13 @@
         document.body.style.overflow = 'hidden';
         setTimeout(() => document.querySelector('#formFields input')?.focus(), 30);
       }
-      function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); document.body.style.overflow = ''; editingItem = null; }
+      function closeModal() {
+        const backdrop = document.getElementById('modalBackdrop');
+        if (!backdrop.classList.contains('open')) return;
+        backdrop.classList.remove('open'); document.body.style.overflow = ''; editingItem = null;
+        if (recordReturnFocus?.isConnected) recordReturnFocus.focus({ preventScroll: true });
+        recordReturnFocus = null;
+      }
       function updateTabs() { document.querySelectorAll('.type-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.type === currentType)); }
       function field(label, name, type = 'text', value = '', opts = {}) {
         const full = opts.full ? ' full' : '';
@@ -1174,6 +1183,7 @@
         document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="시간 삭제">×</button></div>`).join('');
       }
       function openMedicationModal(med = null) {
+        medicationReturnFocus = document.activeElement;
         editingMedicineId = med?.id || null;
         document.getElementById('medModalTitle').textContent = med ? '약 수정' : '약 추가';
         document.getElementById('saveMedicationButton').textContent = med ? '수정 저장' : '약 저장';
@@ -1188,10 +1198,13 @@
         setTimeout(() => document.getElementById('medName').focus(), 30);
       }
       function closeMedicationModal() {
+        if (!document.getElementById('medModalBackdrop').classList.contains('open')) return;
         document.getElementById('medModalBackdrop').classList.remove('open');
         document.body.style.overflow = '';
         editingMedicineId = null;
         document.getElementById('medForm').reset();
+        if (medicationReturnFocus?.isConnected) medicationReturnFocus.focus({ preventScroll: true });
+        medicationReturnFocus = null;
       }
       function saveMedication(event) {
         event.preventDefault();
