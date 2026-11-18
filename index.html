@@ -633,6 +633,7 @@
       let editingMedicineId = null;
       let editingRoutineId = null;
       let toastTimer;
+      let photoPreviewUrl = '';
 
       function localDateString(date) {
         const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -697,7 +698,15 @@
       function save() { localStorage.setItem(KEY, JSON.stringify(records)); }
       function saveMedicines() { localStorage.setItem(MEDS_KEY, JSON.stringify(medicines)); }
       function saveChecks() { localStorage.setItem(CHECKS_KEY, JSON.stringify(medicationChecks)); }
-      function saveNotified() { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notified)); }
+      function saveNotified() {
+        // 알림 중복 방지 기록은 90일이 지나면 정리해 localStorage가 계속 커지지 않게 함
+        const cutoff = Date.now() - 90 * 86400000;
+        for (const key of Object.keys(notified)) {
+          const time = Date.parse(notified[key]);
+          if (Number.isFinite(time) && time < cutoff) delete notified[key];
+        }
+        localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notified));
+      }
       function saveRoutines() { localStorage.setItem(ROUTINES_KEY, JSON.stringify(routines)); }
       function saveShoppingList() { localStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(shoppingList)); }
       function showToast(message) {
@@ -1284,8 +1293,9 @@
           const file = e.target.files?.[0];
           const target = document.getElementById('photoPreview');
           if (file) {
-            const url = URL.createObjectURL(file);
-            target.innerHTML = `<img src="${url}" alt="선택한 사진 미리보기"><button type="button" class="secondary-button" data-clear-photo>선택 취소</button>`;
+            if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+            photoPreviewUrl = URL.createObjectURL(file);
+            target.innerHTML = `<img src="${photoPreviewUrl}" alt="선택한 사진 미리보기"><button type="button" class="secondary-button" data-clear-photo>선택 취소</button>`;
           }
         }
       });
