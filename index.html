@@ -1259,6 +1259,7 @@
       });
       document.getElementById('listAdd').addEventListener('click', () => openModal(currentView === 'expiry' ? 'food' : (['laundry','shopping','clothes'].includes(currentView) ? currentView : 'laundry')));
       document.getElementById('shoppingItemInput').addEventListener('keydown', event => {
+        if (event.isComposing || event.keyCode === 229) return;
         if (event.key === 'Enter') { event.preventDefault(); addShoppingListItem(); }
       });
       document.getElementById('addShoppingItem').addEventListener('click', addShoppingListItem);
