@@ -650,6 +650,7 @@
       let expiryFilter = 'all';
       let toastTimer;
       let photoPreviewUrl = '';
+      let returnFocusTarget = null;
 
       function localDateString(date) {
         const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -1120,7 +1121,20 @@
         document.getElementById('pageTitle').textContent = ({ overview: '대시보드', expiry: '사용기한', medications: '복용 체크', laundry: '빨래', shopping: '장보기', clothes: '옷 구매', routines: '반복 관리', all: '모든 기록' }[view] || '살림 기록');
         render(); window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+      function rememberFocus() { returnFocusTarget = document.activeElement; }
+      function restoreFocus() {
+        // 모달을 닫은 뒤 포커스를 연 버튼으로 돌려보냄. 저장으로 목록이 다시 그려졌다면 기록 추가 버튼으로 이동
+        if (!returnFocusTarget) return;
+        const target = returnFocusTarget;
+        returnFocusTarget = null;
+        setTimeout(() => {
+          const fallback = document.getElementById('openAdd');
+          if (target.isConnected && typeof target.focus === 'function') target.focus({ preventScroll: true });
+          else fallback?.focus({ preventScroll: true });
+        }, 0);
+      }
       function openModal(type = 'laundry', item = null) {
+        rememberFocus();
         editingItem = item ? { ...item } : null;
         currentType = editingItem?.kind || type;
         document.getElementById('typeTabs').style.display = editingItem ? 'none' : 'grid';
@@ -1129,7 +1143,7 @@
         document.body.style.overflow = 'hidden';
         setTimeout(() => document.querySelector('#formFields input')?.focus(), 30);
       }
-      function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); document.body.style.overflow = ''; editingItem = null; }
+      function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); document.body.style.overflow = ''; editingItem = null; restoreFocus(); }
       function updateTabs() { document.querySelectorAll('.type-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.type === currentType)); }
       function field(label, name, type = 'text', value = '', opts = {}) {
         const full = opts.full ? ' full' : '';
@@ -1216,6 +1230,7 @@
         document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="시간 삭제">×</button></div>`).join('');
       }
       function openMedicationModal(med = null) {
+        rememberFocus();
         editingMedicineId = med?.id || null;
         document.getElementById('medModalTitle').textContent = med ? '약 수정' : '약 추가';
         document.getElementById('saveMedicationButton').textContent = med ? '수정 저장' : '약 저장';
@@ -1234,6 +1249,7 @@
         document.body.style.overflow = '';
         editingMedicineId = null;
         document.getElementById('medForm').reset();
+        restoreFocus();
       }
       function saveMedication(event) {
         event.preventDefault();
