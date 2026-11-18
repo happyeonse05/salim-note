@@ -977,10 +977,13 @@
           }
         });
       }
-      function deleteRoutine(id) {
+      function deleteRoutine(id, button) {
         const item = routines.find(routine => routine.id === id);
         if (!item || !window.confirm(`“${item.name}” 반복 일정을 삭제할까요?`)) return;
+        const list = document.getElementById('routineList');
+        const index = [...list.querySelectorAll('[data-routine-delete]')].indexOf(button);
         routines = routines.filter(routine => routine.id !== id); saveRoutines(); render(); showToast('반복 일정을 삭제했어요.');
+        focusAfterRemoval(list, '[data-routine-delete]', index, document.getElementById('routineName'));
       }
       function escapeIcs(value) {
         return String(value ?? '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
@@ -1235,10 +1238,19 @@
           showToast(error.message === 'image' ? '이미지 파일을 선택해 주세요.' : '저장하지 못했어요. 사진을 줄이거나 제거해 주세요.');
         }
       }
-      function deleteRecord(id) {
+      function focusAfterRemoval(container, selector, index, fallback) {
+        // 삭제로 목록이 다시 그려지면 포커스가 사라지므로, 같은 자리의 다음(또는 이전) 항목으로 옮김
+        const remaining = container.querySelectorAll(selector);
+        const target = remaining[index] || remaining[index - 1] || fallback;
+        target?.focus({ preventScroll: true });
+      }
+      function deleteRecord(id, button) {
         const item = records.find(x => x.id === id);
         if (!item || !window.confirm(`“${item.name}” 기록을 삭제할까요?`)) return;
+        const list = document.getElementById('recordList');
+        const index = [...list.querySelectorAll('[data-delete]')].indexOf(button);
         records = records.filter(x => x.id !== id); save(); render(); showToast('기록을 삭제했어요.');
+        focusAfterRemoval(list, '[data-delete]', index, document.getElementById('searchInput'));
       }
       function renderMedTimeInputs(times) {
         document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="시간 삭제">×</button></div>`).join('');
@@ -1364,7 +1376,7 @@
         const remove = event.target.closest('[data-routine-delete]');
         if (edit) editRoutine(edit.dataset.routineEdit);
         else if (done) completeRoutine(done.dataset.routineDone);
-        else if (remove) deleteRoutine(remove.dataset.routineDelete);
+        else if (remove) deleteRoutine(remove.dataset.routineDelete, remove);
       });
       document.getElementById('exportCalendar').addEventListener('click', exportCalendar);
       document.getElementById('closeModal').addEventListener('click', closeModal);
@@ -1399,7 +1411,7 @@
         const remove = e.target.closest('[data-delete]');
         if (photo) showPhoto(photo.dataset.photo);
         else if (edit) { const item = records.find(x => x.id === edit.dataset.edit); if (item) openModal(item.kind, item); }
-        else if (remove) deleteRecord(remove.dataset.delete);
+        else if (remove) deleteRecord(remove.dataset.delete, remove);
       });
       document.getElementById('recordForm').addEventListener('click', e => {
         if (e.target.closest('[data-remove-photo]')) {
