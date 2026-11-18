@@ -93,6 +93,13 @@
     .activity-empty { grid-template-columns: minmax(0,1fr) 128px; align-items: center; justify-items: stretch; gap: 14px; min-height: 118px; padding: 6px 6px 6px 2px; text-align: left; }
     .activity-empty-copy { display: grid; gap: 7px; }
     .activity-empty img { display: block; width: 128px; max-width: 100%; height: auto; object-fit: contain; }
+    .dose-empty, .alert-empty { align-items: center; justify-items: stretch; gap: 12px; padding: 6px 4px; text-align: left; }
+    .dose-empty { grid-template-columns: minmax(0,1fr) 150px; min-height: 132px; }
+    .alert-empty { grid-template-columns: minmax(0,1fr) 112px; min-height: 110px; gap: 8px; padding-right: 2px; }
+    .dose-empty-copy, .alert-empty-copy { display: grid; gap: 7px; }
+    .dose-empty img, .alert-empty img { display: block; max-width: 100%; height: auto; object-fit: contain; }
+    .dose-empty img { width: 150px; }
+    .alert-empty img { width: 112px; }
     .activity-list { display: grid; }
     .activity-row { display: flex; align-items: center; min-height: 58px; border-top: 1px solid #f0efe8; }
     .activity-row:first-child { border-top: 0; }
@@ -234,6 +241,10 @@
       .panel-title { font-size: 13px; }
       .activity-empty { grid-template-columns: minmax(0,1fr) 104px; min-height: 104px; gap: 6px; padding-right: 2px; }
       .activity-empty img { width: 104px; }
+      .dose-empty { grid-template-columns: minmax(0,1fr) 112px; min-height: 104px; gap: 6px; padding: 4px 1px; }
+      .dose-empty img { width: 112px; }
+      .alert-empty { grid-template-columns: minmax(0,1fr) 104px; min-height: 98px; gap: 5px; padding: 3px 1px; }
+      .alert-empty img { width: 104px; }
       .quick-panel { margin-top: 11px; padding: 15px; }
       .quick-actions { grid-template-columns: repeat(2, 1fr); }
       .quick-action { min-height: 43px; padding: 7px 9px; font-size: 9px; }
@@ -737,7 +748,9 @@
       function renderDoseRows(container, compact = false) {
         const doses = todayDoses();
         if (!doses.length) {
-          container.innerHTML = `<div class="empty-state"><strong>오늘 등록된 복용 일정이 없습니다</strong><span>약 관리에서 약과 시간을 추가하세요.</span></div>`;
+          container.innerHTML = compact
+            ? `<div class="empty-state dose-empty"><div class="dose-empty-copy"><strong>오늘 복용 일정이 없어요</strong><span>약 관리에서 약과 시간을 추가하면 이곳에서 확인할 수 있어요.</span></div><img src="assets/salim-medicine-optimized.png" alt="" aria-hidden="true"></div>`
+            : `<div class="empty-state"><strong>오늘 등록된 복용 일정이 없습니다</strong><span>약 관리에서 약과 시간을 추가하세요.</span></div>`;
           return;
         }
         const now = currentMinutes();
@@ -1000,7 +1013,7 @@
         document.getElementById('navExpiryCount').textContent = alerts.length || '';
         const alertList = document.getElementById('alertList');
         if (!alerts.length) {
-          alertList.innerHTML = `<div class="empty-state"><strong>기한 임박 항목 없음</strong><span>식품·화장품을 등록하면 이곳에 표시됩니다.</span></div>`;
+          alertList.innerHTML = `<div class="empty-state alert-empty"><div class="alert-empty-copy"><strong>기한 임박 항목 없음</strong><span>식품·화장품을 등록하면 이곳에 표시됩니다.</span></div><img src="assets/salim-expiry-optimized.png" alt="" aria-hidden="true"></div>`;
         } else {
           alertList.innerHTML = alerts.slice(0,4).map(item => {
             const due = deadlineLabel(item);
