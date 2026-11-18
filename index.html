@@ -377,6 +377,15 @@
     .shopping-list-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
     .shopping-list-footer .secondary-button { min-height: 35px; font-size: 11px; }
     .shopping-list-footer button:disabled { opacity: .48; cursor: not-allowed; }
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 15px 0 0; }
+    .filter-chips[hidden] { display: none; }
+    .filter-chip { min-height: 34px; padding: 0 13px; border: 1px solid var(--line); border-radius: 99px; background: var(--paper); color: #6b766f; font-size: 12px; font-weight: 600; }
+    .filter-chip.active { border-color: #b7cbbf; background: var(--green-pale); color: var(--green); font-weight: 750; }
+    .toast.has-action { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+    .toast-action { border: 0; padding: 0; background: transparent; color: #cfe5d9; font-size: 11px; font-weight: 750; text-decoration: underline; }
+    @media (max-width: 640px) {
+      .filter-chip { min-height: 32px; padding: 0 11px; font-size: 11px; }
+    }
     @media (max-width: 1080px) {
       .main { padding-right: 28px; padding-left: 28px; }
       .dashboard { grid-template-columns: minmax(0, 1.2fr) minmax(265px, .9fr); }
@@ -497,7 +506,7 @@
         <div class="stat-grid">
           <article class="stat-card"><div class="stat-icon">◌</div><div><div class="stat-label">이번 달 빨래</div><div class="stat-value"><span id="laundryStat">0</span><small>회 기록</small></div></div></article>
           <article class="stat-card"><div class="stat-icon">⌑</div><div><div class="stat-label">이번 달 장보기</div><div class="stat-value"><span id="shoppingStat">0</span><small>회 기록</small></div></div></article>
-          <article class="stat-card"><div class="stat-icon">♧</div><div><div class="stat-label">이번 달 새 옷</div><div class="stat-value"><span id="clothesStat">0</span><small>건 기록</small></div></div></article>
+          <article class="stat-card"><div class="stat-icon">♧</div><div><div class="stat-label">이번 달 새 옷</div><div class="stat-value"><span id="clothesStat">0</span><small>건 · <span id="clothesSpend">0원</span></small></div></div></article>
         </div>
         <section class="panel med-panel">
           <div class="panel-heading"><div><h2 class="panel-title">오늘 복용</h2><p class="panel-caption">등록한 시간에 복용 여부를 체크하세요</p></div><button class="link-button" data-open-view="medications">약 관리 →</button></div>
@@ -533,6 +542,12 @@
 
       <section class="list-section" id="listSection">
         <div class="panel-heading"><div><h2 class="panel-title" id="listTitle">기록</h2><p class="panel-caption" id="listCaption"></p></div><button class="primary-button" id="listAdd"><span class="plus">＋</span> 새 기록</button></div>
+        <div class="filter-chips" id="expiryFilters" role="group" aria-label="사용기한 필터" hidden>
+          <button class="filter-chip active" type="button" data-expiry-filter="all">전체</button>
+          <button class="filter-chip" type="button" data-expiry-filter="expired">지남</button>
+          <button class="filter-chip" type="button" data-expiry-filter="week">7일 이내</button>
+          <button class="filter-chip" type="button" data-expiry-filter="later">그 이후</button>
+        </div>
         <div class="list-toolbar"><div class="search-wrap"><span>⌕</span><input class="search-input" type="search" id="searchInput" placeholder="이름이나 메모 검색" aria-label="기록 검색"></div><select class="sort-select" id="sortSelect" aria-label="정렬"><option value="newest">최근 기록순</option><option value="oldest">오래된 순</option></select></div>
         <section class="panel shopping-list-panel" id="shoppingListPanel">
           <div class="panel-heading"><div><h2 class="panel-title">살 것</h2><p class="panel-caption">체크한 항목은 장보기 기록으로 저장할 수 있어요.</p></div><span class="shopping-count" id="shoppingCount">0개</span></div>
@@ -632,6 +647,7 @@
       let editingItem = null;
       let editingMedicineId = null;
       let editingRoutineId = null;
+      let expiryFilter = 'all';
       let toastTimer;
       let photoPreviewUrl = '';
 
@@ -709,9 +725,26 @@
       }
       function saveRoutines() { localStorage.setItem(ROUTINES_KEY, JSON.stringify(routines)); }
       function saveShoppingList() { localStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(shoppingList)); }
-      function showToast(message) {
-        const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show');
-        clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2300);
+      function showToast(message, action = null) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.toggle('has-action', Boolean(action));
+        if (action) {
+          const button = document.createElement('button');
+          button.type = 'button'; button.className = 'toast-action'; button.textContent = action.label;
+          button.addEventListener('click', () => {
+            clearTimeout(toastTimer); toast.classList.remove('show'); action.onClick();
+          });
+          toast.append(button);
+        }
+        toast.classList.add('show');
+        clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), action ? 5000 : 2300);
+      }
+      function expiryBucket(item) {
+        const days = daysUntil(safeDeadline(item));
+        if (days < 0) return 'expired';
+        if (days <= 7) return 'week';
+        return 'later';
       }
       function activityDate(item) { return item.kind === 'cosmetic' ? (item.openedAt || item.registeredAt || today) : (item.date || item.registeredAt || today); }
       function sortedRecords(items = records) { return [...items].sort((a,b) => (activityDate(b) || '').localeCompare(activityDate(a) || '')); }
@@ -929,9 +962,19 @@
       function completeRoutine(id) {
         const item = routines.find(routine => routine.id === id);
         if (!item) return;
+        const previous = { lastDone: item.lastDone || '', nextDate: item.nextDate };
         item.lastDone = today;
         item.nextDate = advanceRoutineDate(today, item.cadence);
-        saveRoutines(); render(); showToast(`완료했어요. 다음 일정은 ${formatDate(item.nextDate, false)}예요.`);
+        saveRoutines(); render();
+        showToast(`완료했어요. 다음 일정은 ${formatDate(item.nextDate, false)}예요.`, {
+          label: '실행 취소',
+          onClick: () => {
+            const target = routines.find(routine => routine.id === id);
+            if (!target) return;
+            target.lastDone = previous.lastDone; target.nextDate = previous.nextDate;
+            saveRoutines(); render(); showToast('완료를 되돌렸어요.');
+          }
+        });
       }
       function deleteRoutine(id) {
         const item = routines.find(routine => routine.id === id);
@@ -1004,7 +1047,10 @@
         const thisMonth = today.slice(0,7);
         document.getElementById('laundryStat').textContent = records.filter(x => x.kind === 'laundry' && activityDate(x).startsWith(thisMonth)).length;
         document.getElementById('shoppingStat').textContent = records.filter(x => x.kind === 'shopping' && activityDate(x).startsWith(thisMonth)).length;
-        document.getElementById('clothesStat').textContent = records.filter(x => x.kind === 'clothes' && activityDate(x).startsWith(thisMonth)).length;
+        const monthClothes = records.filter(x => x.kind === 'clothes' && activityDate(x).startsWith(thisMonth));
+        document.getElementById('clothesStat').textContent = monthClothes.length;
+        const spend = monthClothes.reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+        document.getElementById('clothesSpend').textContent = `${spend.toLocaleString('ko-KR')}원`;
         const alerts = expiringRecords();
         document.getElementById('navExpiryCount').textContent = alerts.length || '';
         const alertList = document.getElementById('alertList');
@@ -1021,7 +1067,7 @@
         activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state activity-empty"><div class="activity-empty-copy"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div><img src="assets/salim-empty-optimized.png" alt="" aria-hidden="true"></div>`;
       }
       function viewItems() {
-        if (currentView === 'expiry') return sortedRecords(records.filter(x => x.kind === 'food' || x.kind === 'cosmetic'));
+        if (currentView === 'expiry') return sortedRecords(records.filter(x => (x.kind === 'food' || x.kind === 'cosmetic') && (expiryFilter === 'all' || expiryBucket(x) === expiryFilter)));
         if (currentView === 'laundry') return sortedRecords(records.filter(x => x.kind === 'laundry'));
         if (currentView === 'shopping') return sortedRecords(records.filter(x => x.kind === 'shopping'));
         if (currentView === 'clothes') return sortedRecords(records.filter(x => x.kind === 'clothes'));
@@ -1040,6 +1086,8 @@
         const titleMap = { all: ['모든 기록', '전체 생활 기록'], expiry: ['사용기한', '식품 표시기한과 화장품 권장 사용기한'], laundry: ['빨래', '세탁 날짜와 메모'], shopping: ['장보기', '장보기 날짜와 구매 품목'], clothes: ['옷 구매', '구매 날짜와 가격'] };
         document.getElementById('listTitle').textContent = titleMap[currentView]?.[0] || '모든 기록';
         document.getElementById('listCaption').textContent = titleMap[currentView]?.[1] || '';
+        document.getElementById('expiryFilters').hidden = currentView !== 'expiry';
+        document.querySelectorAll('[data-expiry-filter]').forEach(chip => chip.classList.toggle('active', chip.dataset.expiryFilter === expiryFilter));
         const q = document.getElementById('searchInput').value.trim().toLowerCase();
         let items = viewItems().filter(item => !q || [item.name, item.note, labels[item.kind]].filter(Boolean).join(' ').toLowerCase().includes(q));
         if (document.getElementById('sortSelect').value === 'oldest') items = items.reverse();
@@ -1301,6 +1349,11 @@
       });
       document.getElementById('searchInput').addEventListener('input', renderList);
       document.getElementById('sortSelect').addEventListener('change', renderList);
+      document.getElementById('expiryFilters').addEventListener('click', e => {
+        const chip = e.target.closest('[data-expiry-filter]');
+        if (!chip) return;
+        expiryFilter = chip.dataset.expiryFilter; renderList();
+      });
       document.getElementById('recordList').addEventListener('click', e => {
         const photo = e.target.closest('[data-photo]');
         const edit = e.target.closest('[data-edit]');
