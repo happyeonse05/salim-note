@@ -1371,7 +1371,21 @@
       document.getElementById('backupInline').addEventListener('click', exportData);
       document.getElementById('importButton').addEventListener('click', () => document.getElementById('importFile').click());
       document.getElementById('importFile').addEventListener('change', e => { const file = e.target.files?.[0]; if (file) importData(file); e.target.value = ''; });
-      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeMedicationModal(); closePhoto(); } });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closeModal(); closeMedicationModal(); closePhoto(); }
+        if (e.key !== 'Tab') return;
+        const dialog = document.querySelector('.modal-backdrop.open');
+        if (!dialog) return;
+        const controls = [...dialog.querySelectorAll('button, input, select, textarea, a[href], [tabindex]')]
+          .filter(control => !control.disabled && control.tabIndex >= 0 && control.getClientRects().length);
+        const first = controls[0], last = controls[controls.length - 1];
+        if (!first) return;
+        if (e.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+          e.preventDefault(); first.focus();
+        }
+      });
       document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkNotifications(); renderMedications(); } });
       setInterval(() => { checkNotifications(); renderMedications(); }, 60 * 1000);
       render();
