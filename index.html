@@ -1,0 +1,1347 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3ed">
+  <meta name="description" content="빨래, 장보기, 반복 집안일, 복용 일정과 식품·화장품 사용기한을 관리하는 생활 기록 앱">
+  <title>살림 기록</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f5f4;
+      --paper: #ffffff;
+      --paper-2: #f7f8f7;
+      --ink: #222a27;
+      --muted: #69766f;
+      --line: #dce3df;
+      --green: #2f6652;
+      --green-2: #56796a;
+      --green-pale: #e8f0ec;
+      --coral: #b9614b;
+      --coral-pale: #f8eae6;
+      --gold: #99722e;
+      --gold-pale: #f4f0e4;
+      --shadow: 0 1px 3px rgba(30, 47, 38, .05), 0 4px 14px rgba(30, 47, 38, .025);
+      --radius: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--bg); color: var(--ink); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { min-height: 100vh; }
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; z-index: 5; display: flex; flex-direction: column;
+      width: 220px; padding: 24px 14px 16px; background: var(--paper); border-right: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 10px; margin: 0 0 34px; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--green); color: #fff; font-size: 17px; }
+    .brand-name { font-size: 15px; font-weight: 750; letter-spacing: -.4px; }
+    .brand-sub { margin-top: 3px; font-size: 9px; color: var(--muted); letter-spacing: .3px; }
+    .nav-label { padding: 0 13px; margin: 0 0 10px; color: #a1a59e; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; }
+    .nav-list { display: grid; gap: 5px; }
+    .nav-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 0; border-radius: 8px; background: transparent; color: #68746d; text-align: left; font-size: 12px; transition: background .15s, color .15s; }
+    .nav-item:hover { background: #f5f5ef; color: var(--ink); }
+    .nav-item.active { background: var(--green-pale); color: var(--green); font-weight: 700; box-shadow: inset 2px 0 var(--green); }
+    .nav-icon { width: 18px; font-size: 16px; text-align: center; }
+    .nav-count { margin-left: auto; color: #9da39a; font-size: 11px; }
+    .side-spacer { flex: 1; }
+    .side-note { padding: 13px 12px; border-radius: 9px; background: var(--paper-2); border: 1px solid var(--line); }
+    .side-note-title { margin-bottom: 7px; font-size: 11px; font-weight: 700; }
+    .side-note p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.65; }
+    .side-tools { display: flex; justify-content: space-between; align-items: center; padding: 18px 9px 0; color: #9a9e97; font-size: 10px; }
+    .text-button { border: 0; padding: 3px 0; background: transparent; color: var(--green); font-size: 10px; font-weight: 700; }
+    .main { max-width: 1480px; min-height: 100vh; margin-left: 220px; padding: 0 42px 56px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; padding: 25px 0 22px; }
+    .eyebrow { color: var(--green-2); font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+    h1 { margin: 5px 0 0; font-size: 21px; letter-spacing: -.55px; font-weight: 750; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .date-chip { padding: 9px 13px; border: 1px solid var(--line); border-radius: 99px; color: #7e857c; background: rgba(255,254,250,.65); font-size: 11px; }
+    .primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 0 13px; border: 0; border-radius: 8px; background: var(--green); color: #fff; font-size: 11px; font-weight: 700; box-shadow: none; transition: background .15s; }
+    .primary-button:hover { transform: translateY(-1px); background: #344a3b; }
+    .plus { font-size: 17px; line-height: 1; font-weight: 400; }
+    .dashboard { display: block; }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 19px 0; }
+    .stat-card { display: flex; align-items: center; min-height: 82px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: var(--shadow); }
+    .stat-icon { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; margin-right: 12px; border-radius: 9px; background: var(--green-pale); color: var(--green); font-size: 16px; }
+    .stat-card:nth-child(2) .stat-icon { background: var(--gold-pale); color: var(--gold); }
+    .stat-card:nth-child(3) .stat-icon { background: var(--coral-pale); color: var(--coral); }
+    .stat-label { color: var(--muted); font-size: 10px; }
+    .stat-value { margin-top: 5px; font-size: 19px; font-weight: 750; letter-spacing: -.5px; }
+    .stat-value small { margin-left: 4px; color: #969c93; font-size: 10px; font-weight: 500; }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(265px, .9fr); gap: 17px; }
+    .panel { min-width: 0; padding: 18px 18px; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); box-shadow: var(--shadow); }
+    .panel-heading { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 17px; }
+    .panel-title { margin: 0; font-size: 14px; font-weight: 750; letter-spacing: -.35px; }
+    .panel-caption { margin: 5px 0 0; color: var(--muted); font-size: 10px; }
+    .link-button { border: 0; background: transparent; color: var(--green); font-size: 10px; font-weight: 700; }
+    .alert-list { display: grid; gap: 9px; }
+    .alert-row { display: flex; align-items: center; min-height: 61px; padding: 10px 12px; border-radius: 12px; background: #faf9f4; }
+    .alert-row.urgent { background: #fbf0eb; }
+    .alert-symbol { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; margin-right: 11px; border-radius: 12px; background: #eff1eb; font-size: 15px; }
+    .alert-row.urgent .alert-symbol { background: #f5ded5; }
+    .alert-meta { min-width: 0; flex: 1; }
+    .alert-name { overflow: hidden; color: #3b413b; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .alert-date { margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .deadline { flex: 0 0 auto; margin-left: 9px; padding: 6px 8px; border-radius: 8px; background: var(--green-pale); color: var(--green); font-size: 9px; font-weight: 750; white-space: nowrap; }
+    .deadline.urgent { background: #f4ddd4; color: #a25740; }
+    .deadline.past { background: #eeeae5; color: #7b7069; }
+    .empty-state { display: grid; justify-items: center; gap: 8px; padding: 23px 12px 20px; color: var(--muted); text-align: center; }
+    .empty-state strong { color: #4b514b; font-size: 11px; }
+    .empty-state span { font-size: 10px; line-height: 1.6; }
+    .activity-list { display: grid; }
+    .activity-row { display: flex; align-items: center; min-height: 58px; border-top: 1px solid #f0efe8; }
+    .activity-row:first-child { border-top: 0; }
+    .activity-icon { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; margin-right: 11px; border-radius: 11px; background: #f1f2ec; font-size: 14px; }
+    .activity-main { min-width: 0; flex: 1; }
+    .activity-name { overflow: hidden; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-sub { margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .activity-kind { margin-left: 8px; color: #92988f; font-size: 9px; white-space: nowrap; }
+    .quick-panel { margin-top: 17px; padding: 18px 21px; }
+    .quick-actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; }
+    .quick-action { display: flex; align-items: center; gap: 9px; min-height: 48px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 12px; background: #fffefa; color: #565d55; text-align: left; font-size: 10px; transition: border .15s, background .15s; }
+    .quick-action:hover { border-color: #bcc9bc; background: #f8faf6; }
+    .quick-action span:first-child { font-size: 16px; }
+    .list-section { display: none; }
+    .list-section.visible { display: block; }
+    .list-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 18px 0 13px; }
+    .search-wrap { position: relative; flex: 1; max-width: 350px; }
+    .search-wrap span { position: absolute; top: 50%; left: 12px; color: #a2a69f; transform: translateY(-50%); }
+    .search-input { width: 100%; height: 39px; padding: 0 12px 0 34px; border: 1px solid var(--line); border-radius: 10px; outline: none; background: var(--paper); color: var(--ink); font-size: 11px; }
+    .search-input:focus { border-color: #9cab9c; box-shadow: 0 0 0 3px rgba(65,91,73,.08); }
+    .sort-select { height: 39px; padding: 0 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: #777e76; font-size: 10px; }
+    .record-list { display: grid; gap: 9px; }
+    .record-card { display: flex; align-items: center; gap: 11px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); box-shadow: var(--shadow); }
+    .record-icon { display: grid; place-items: center; flex: 0 0 41px; height: 41px; border-radius: 13px; background: var(--green-pale); font-size: 18px; }
+    .record-copy { min-width: 0; flex: 1; }
+    .record-title { overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .record-detail { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; color: var(--muted); font-size: 9px; }
+    .record-right { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; }
+    .record-deadline { color: var(--green); font-size: 10px; font-weight: 750; text-align: right; }
+    .record-deadline small { display: block; margin-bottom: 3px; color: #9ba097; font-size: 8px; font-weight: 500; }
+    .delete-button, .edit-button { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 7px; background: transparent; color: #77827b; font-size: 13px; }
+    .delete-button:hover { background: #f7e9e4; color: #a25740; }
+    .edit-button:hover { background: var(--green-pale); color: var(--green); }
+    .storage-note { margin-top: 23px; color: #9a9e96; font-size: 9px; text-align: center; }
+    .storage-note button { color: var(--green); font-size: inherit; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 20; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(30,37,31,.38); backdrop-filter: blur(3px); }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(100%, 520px); max-height: min(88vh, 760px); overflow: auto; border-radius: 20px; background: var(--paper); box-shadow: 0 24px 70px rgba(20,30,22,.23); }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 23px 25px 16px; border-bottom: 1px solid var(--line); }
+    .modal-head h2 { margin: 0; font-size: 17px; letter-spacing: -.5px; }
+    .modal-head p { margin: 6px 0 0; color: var(--muted); font-size: 10px; }
+    .close-button { display: grid; place-items: center; width: 31px; height: 31px; border: 0; border-radius: 9px; background: #f3f2ec; color: #747b73; font-size: 18px; }
+    .type-tabs { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; padding: 15px 23px 0; }
+    .type-tab { min-height: 49px; padding: 6px 3px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: #8a9088; font-size: 9px; }
+    .type-tab span { display: block; margin-bottom: 3px; font-size: 15px; }
+    .type-tab.active { border-color: #b7c4b7; background: #eff3ed; color: var(--green); font-weight: 750; }
+    .form-body { padding: 19px 25px 8px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 12px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { display: block; margin: 0 0 6px; color: #5e655d; font-size: 10px; font-weight: 700; }
+    .field .hint { margin-left: 4px; color: #a0a59d; font-size: 9px; font-weight: 400; }
+    .field input, .field select, .field textarea { width: 100%; min-height: 39px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; outline: none; background: #fff; color: #333a34; font-size: 11px; }
+    .field textarea { min-height: 67px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #9cab9c; box-shadow: 0 0 0 3px rgba(65,91,73,.08); }
+    .calc-preview { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 11px 12px; border-radius: 11px; background: #f0f3ed; color: var(--green); font-size: 10px; line-height: 1.55; }
+    .calc-preview b { font-size: 12px; }
+    .form-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 13px 25px 22px; }
+    .secondary-button { min-height: 39px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: #70776e; font-size: 11px; }
+    .toast { position: fixed; z-index: 30; bottom: 25px; left: 50%; padding: 11px 16px; border-radius: 11px; background: #29362c; color: #fff; font-size: 11px; box-shadow: 0 8px 24px rgba(0,0,0,.2); opacity: 0; pointer-events: none; transform: translate(-50%, 10px); transition: all .2s; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    #importFile { display: none; }
+    .notification-button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: #59665f; font-size: 10px; }
+    .notification-button.enabled { border-color: #c5d8cd; background: #edf4f0; color: var(--green); }
+    .dashboard-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; padding: 12px 15px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: #59665f; font-size: 11px; }
+    .dashboard-summary strong { color: var(--ink); }
+    .dashboard-summary small { color: var(--muted); font-size: 10px; }
+    .med-panel { margin-bottom: 14px; }
+    .med-dose-list { display: grid; gap: 7px; }
+    .med-dose-row { display: flex; align-items: center; gap: 10px; min-height: 49px; padding: 8px 10px; border: 1px solid #e7ebe8; border-radius: 8px; background: #fbfcfb; }
+    .med-dose-time { flex: 0 0 45px; color: #4c5d54; font-size: 11px; font-weight: 700; }
+    .med-dose-copy { min-width: 0; flex: 1; }
+    .med-dose-name { overflow: hidden; color: #2c3731; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .med-dose-meta { margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .dose-status { padding: 4px 7px; border-radius: 6px; background: #f4eee1; color: #876b31; font-size: 9px; font-weight: 700; white-space: nowrap; }
+    .dose-status.done { background: #e6f0eb; color: var(--green); }
+    .dose-status.late { background: #f8eae6; color: #a34f3c; }
+    .dose-button { min-width: 72px; min-height: 30px; padding: 0 9px; border: 1px solid #cbd8d0; border-radius: 7px; background: #fff; color: var(--green); font-size: 9px; font-weight: 700; }
+    .dose-button.done { border-color: #d8e4dd; background: #eaf2ed; }
+    .med-list { display: grid; gap: 8px; }
+    .med-card { display: flex; align-items: center; gap: 12px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); }
+    .med-card-main { min-width: 0; flex: 1; }
+    .med-card-name { font-size: 12px; font-weight: 700; }
+    .med-card-info { margin-top: 4px; color: var(--muted); font-size: 9px; line-height: 1.6; }
+    .med-card-actions { display: flex; gap: 3px; }
+    .med-time-row { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+    .med-time-row input { flex: 1; }
+    .remove-time { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: #68746d; }
+    .day-picker { display: flex; flex-wrap: wrap; gap: 5px; }
+    .day-option { position: relative; }
+    .day-option input { position: absolute; opacity: 0; }
+    .day-option span { display: grid; place-items: center; width: 34px; height: 31px; border: 1px solid var(--line); border-radius: 7px; color: #758079; font-size: 9px; cursor: pointer; }
+    .day-option input:checked + span { border-color: #b7cbbf; background: #eaf2ed; color: var(--green); font-weight: 700; }
+    .photo-preview { display: flex; align-items: center; gap: 9px; margin-top: 8px; color: var(--muted); font-size: 9px; }
+    .photo-preview img { width: 58px; height: 58px; border: 1px solid var(--line); border-radius: 7px; object-fit: cover; }
+    .record-photo { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; overflow: hidden; border: 0; border-radius: 8px; background: #f0f3f1; color: var(--green); font-size: 17px; }
+    .record-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-viewer { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(15,22,18,.85); }
+    .photo-viewer.open { display: flex; }
+    .photo-viewer img { max-width: min(92vw, 900px); max-height: 86vh; border-radius: 8px; object-fit: contain; }
+    .photo-viewer button { position: absolute; top: 20px; right: 22px; width: 38px; height: 38px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: rgba(255,255,255,.1); color: #fff; font-size: 22px; }
+    .med-disclaimer { margin: 9px 0 0; color: var(--muted); font-size: 9px; line-height: 1.6; }
+    .med-section { display: none; }
+    .med-section.visible { display: block; }
+    .med-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 13px; }
+    @media (max-width: 1080px) {
+      .main { padding-right: 28px; padding-left: 28px; }
+      .content-grid { grid-template-columns: minmax(0, 1.3fr) minmax(235px, .9fr); }
+      .quick-actions { grid-template-columns: repeat(3, 1fr); }
+      .med-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 820px) {
+      .sidebar { inset: auto 0 0; width: 100%; height: 67px; padding: 6px 10px max(6px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); border-right: 0; }
+      .brand, .nav-label, .side-spacer, .side-note, .side-tools { display: none; }
+      .nav-list { display: flex; justify-content: space-around; gap: 1px; width: 100%; }
+      .nav-item { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; padding: 5px 2px; border-radius: 7px; text-align: center; font-size: 7px; }
+      .nav-item.active { box-shadow: inset 0 2px var(--green); }
+      .nav-icon { width: auto; font-size: 16px; }
+      .nav-count { display: none; }
+      .main { margin-left: 0; padding: 0 22px 88px; }
+      .topbar { padding-top: 21px; }
+    }
+    @media (max-width: 640px) {
+      .main { padding-right: 15px; padding-left: 15px; }
+      .topbar { align-items: flex-start; padding-bottom: 18px; }
+      h1 { font-size: 20px; }
+      .date-chip { display: none; }
+      .primary-button { min-height: 38px; padding: 0 12px; font-size: 10px; }
+      .notification-button { width: 37px; min-width: 37px; justify-content: center; padding: 0; overflow: hidden; white-space: nowrap; font-size: 0; }
+      .notification-button span { font-size: 14px; }
+      .stat-grid { gap: 8px; margin: 12px 0; }
+      .stat-card { display: flex; min-height: 82px; padding: 11px 8px; border-radius: 10px; }
+      .stat-icon { flex-basis: 29px; width: 29px; height: 29px; margin: 0 7px 0 0; border-radius: 8px; font-size: 14px; }
+      .stat-label { font-size: 8px; }
+      .stat-value { font-size: 16px; }
+      .stat-value small { font-size: 8px; }
+      .content-grid { grid-template-columns: 1fr; gap: 11px; }
+      .panel { padding: 15px 13px; border-radius: 10px; }
+      .panel-title { font-size: 13px; }
+      .quick-panel { margin-top: 11px; padding: 15px; }
+      .quick-actions { grid-template-columns: repeat(2, 1fr); }
+      .quick-action { min-height: 43px; padding: 7px 9px; font-size: 9px; }
+      .list-toolbar { align-items: stretch; }
+      .sort-select { max-width: 100px; }
+      .record-card { gap: 9px; padding: 11px; }
+      .record-right { gap: 5px; }
+      .record-deadline { font-size: 9px; }
+      .record-icon { flex-basis: 35px; height: 35px; font-size: 15px; }
+      .modal-backdrop { padding: 10px; align-items: flex-end; }
+      .modal { max-height: 92vh; border-radius: 19px 19px 12px 12px; }
+      .modal-head { padding: 18px 18px 13px; }
+      .type-tabs { padding: 12px 14px 0; gap: 4px; }
+      .type-tab { font-size: 8px; }
+      .form-body { padding: 17px 18px 5px; }
+      .form-footer { padding: 11px 18px 18px; }
+    }
+    @media (max-width: 380px) {
+      .stat-card { padding: 10px 8px; }
+      .stat-label { letter-spacing: -.2px; }
+      .type-tab { font-size: 7px; }
+    }
+    /* Final layout pass: give the dashboard a clear reading order and roomier controls. */
+    :root {
+      --bg: #f4f6f5;
+      --paper-2: #f7f9f8;
+      --ink: #202925;
+      --muted: #66736c;
+      --line: #e1e7e3;
+      --green: #315f4e;
+      --green-2: #58766a;
+      --green-pale: #eaf1ed;
+      --shadow: 0 1px 2px rgba(27, 43, 34, .035), 0 5px 16px rgba(27, 43, 34, .025);
+    }
+    body { line-height: 1.5; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(49,95,78,.22); outline-offset: 2px; }
+    .sidebar { width: 228px; padding: 25px 15px 17px; }
+    .brand { margin-bottom: 31px; }
+    .brand-mark { border-radius: 10px; }
+    .nav-list { gap: 4px; }
+    .nav-item { min-height: 42px; padding: 10px 12px; border-radius: 9px; font-size: 13px; }
+    .nav-item.active { box-shadow: inset 3px 0 var(--green); }
+    .main { max-width: 1420px; margin-left: 228px; padding: 0 clamp(26px, 4vw, 58px) 60px; }
+    .topbar { min-height: 96px; padding: 23px 0 19px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .eyebrow { font-size: 11px; letter-spacing: .15px; }
+    h1 { font-size: 24px; letter-spacing: -.65px; }
+    .date-chip { font-size: 12px; }
+    .primary-button, .notification-button { min-height: 40px; font-size: 12px; }
+    .dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(290px, .9fr);
+      grid-template-areas: "summary summary" "stats stats" "med alerts" "routine recent" "quick quick";
+      gap: 16px;
+    }
+    .dashboard-summary { grid-area: summary; min-height: 54px; margin: 0; padding: 13px 17px; border-radius: 10px; background: #edf3ef; color: #40564b; font-size: 13px; }
+    .dashboard-summary strong { font-size: 14px; }
+    .dashboard-summary small { font-size: 12px; }
+    .stat-grid { grid-area: stats; gap: 12px; margin: 0; }
+    .stat-card { min-height: 96px; padding: 17px 19px; border-radius: 11px; box-shadow: none; }
+    .stat-icon { flex-basis: 40px; width: 40px; height: 40px; margin-right: 14px; border-radius: 10px; font-size: 18px; }
+    .stat-label { font-size: 12px; }
+    .stat-value { margin-top: 4px; font-size: 23px; }
+    .stat-value small { font-size: 11px; }
+    .dashboard .content-grid { display: contents; }
+    .dashboard .med-panel { grid-area: med; min-height: 100%; margin: 0; }
+    .dashboard .routine-preview-panel { grid-area: routine; margin: 0; }
+    .dashboard .content-grid > .panel:first-child { grid-area: alerts; }
+    .dashboard .content-grid > .panel:nth-child(2) { grid-area: recent; }
+    .panel { padding: 20px; border-radius: 11px; box-shadow: var(--shadow); }
+    .panel-heading { align-items: center; margin-bottom: 16px; }
+    .panel-title { font-size: 15px; }
+    .panel-caption { font-size: 12px; }
+    .link-button { padding: 7px 0 7px 8px; font-size: 12px; }
+    .alert-list { gap: 8px; }
+    .alert-row { min-height: 64px; padding: 10px 11px; border-radius: 9px; background: #f7f9f7; }
+    .alert-row.urgent { background: #fbf2ef; }
+    .alert-symbol, .activity-icon { border-radius: 9px; }
+    .alert-name, .activity-name { font-size: 12px; }
+    .alert-date, .activity-sub, .activity-kind { font-size: 11px; }
+    .deadline { font-size: 10px; }
+    .activity-row { min-height: 62px; border-color: #edf0ee; }
+    .empty-state strong { font-size: 13px; }
+    .empty-state span { font-size: 12px; }
+    .med-dose-list { gap: 8px; }
+    .med-dose-row { min-height: 57px; padding: 9px 10px; border-radius: 9px; background: #fafcfb; }
+    .med-dose-time { flex-basis: 48px; font-size: 12px; }
+    .med-dose-name { font-size: 12px; }
+    .med-dose-meta { font-size: 11px; }
+    .dose-status { padding: 5px 8px; font-size: 10px; }
+    .dose-button { min-height: 34px; font-size: 11px; }
+    .quick-panel { grid-area: quick; margin: 0; padding: 20px; }
+    .quick-actions { gap: 10px; }
+    .quick-action { min-height: 52px; padding: 10px 13px; border-radius: 9px; font-size: 12px; }
+    .quick-action span:first-child { font-size: 17px; }
+    .list-section, .med-section { padding-top: 3px; }
+    .list-toolbar { margin: 15px 0; }
+    .search-input, .sort-select { height: 42px; font-size: 12px; }
+    .record-card { min-height: 68px; padding: 13px 15px; border-radius: 10px; }
+    .record-title { font-size: 13px; }
+    .record-detail { font-size: 11px; }
+    .record-deadline { font-size: 11px; }
+    .record-deadline small { font-size: 10px; }
+    .storage-note { font-size: 11px; }
+    .field label { font-size: 12px; }
+    .field input, .field select, .field textarea { font-size: 13px; }
+    .type-tab { font-size: 10px; }
+    .med-card-name { font-size: 13px; }
+    .med-card-info, .med-disclaimer { font-size: 11px; }
+    .routine-preview-list, .routine-list, .shopping-items { display: grid; gap: 8px; }
+    .routine-section { display: none; }
+    .routine-section.visible { display: block; }
+    .routine-preview-row, .routine-row, .shopping-item { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fbfcfb; }
+    .routine-preview-copy, .routine-copy { min-width: 0; flex: 1; }
+    .routine-preview-name, .routine-name { overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .routine-preview-date, .routine-meta { margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .routine-due { flex: 0 0 auto; padding: 5px 8px; border-radius: 7px; background: var(--green-pale); color: var(--green); font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .routine-due.urgent { background: var(--gold-pale); color: var(--gold); }
+    .routine-due.overdue { background: var(--coral-pale); color: var(--coral); }
+    .routine-row { min-height: 72px; padding: 12px; }
+    .routine-row .routine-name { font-size: 13px; }
+    .routine-actions { display: flex; flex: 0 0 auto; gap: 6px; }
+    .routine-done { min-height: 34px; padding: 0 10px; border: 1px solid #ccd9d1; border-radius: 8px; background: #fff; color: var(--green); font-size: 11px; font-weight: 700; }
+    .routine-delete { width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: #737d76; font-size: 17px; }
+    .routine-form-panel { margin-bottom: 14px; }
+    .routine-form-heading { margin-bottom: 14px; }
+    .routine-form { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(150px, .8fr) minmax(145px, .8fr) auto; align-items: end; gap: 11px; }
+    .routine-form .field input, .routine-form .field select { min-height: 42px; }
+    .routine-list-panel { margin-top: 14px; }
+    .calendar-note { margin: 12px 2px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .shopping-list-panel { display: none; margin: 0 0 14px; }
+    .shopping-list-panel.visible { display: block; }
+    .shopping-count { padding: 5px 9px; border-radius: 99px; background: var(--green-pale); color: var(--green); font-size: 11px; font-weight: 700; }
+    .shopping-entry { display: flex; gap: 8px; margin-bottom: 12px; }
+    .shopping-entry input { min-width: 0; flex: 1; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; outline: none; background: #fff; font-size: 13px; }
+    .shopping-items { gap: 6px; }
+    .shopping-item { min-height: 46px; padding: 8px 10px; }
+    .shopping-item input { width: 17px; height: 17px; accent-color: var(--green); }
+    .shopping-item-name { min-width: 0; flex: 1; font-size: 13px; }
+    .shopping-item.checked .shopping-item-name { color: #8a948e; text-decoration: line-through; }
+    .shopping-remove { width: 30px; height: 30px; border: 0; border-radius: 7px; background: transparent; color: #78827b; font-size: 16px; }
+    .shopping-list-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .shopping-list-footer .secondary-button { min-height: 35px; font-size: 11px; }
+    .shopping-list-footer button:disabled { opacity: .48; cursor: not-allowed; }
+    @media (max-width: 1080px) {
+      .main { padding-right: 28px; padding-left: 28px; }
+      .dashboard { grid-template-columns: minmax(0, 1.2fr) minmax(265px, .9fr); }
+    }
+    @media (max-width: 820px) {
+      .sidebar { inset: auto 0 0; display: block; width: 100%; height: 72px; overflow-x: auto; overflow-y: hidden; padding: 5px 8px max(5px, env(safe-area-inset-bottom)); }
+      .nav-list { display: flex; justify-content: flex-start; gap: 2px; width: max-content; min-width: 100%; }
+      .nav-item { flex: 0 0 64px; min-width: 64px; min-height: 60px; gap: 2px; padding: 5px 3px; font-size: 10px; }
+      .nav-item.active { box-shadow: inset 0 3px var(--green); }
+      .nav-icon { font-size: 17px; }
+      .main { margin-left: 0; padding: 0 24px 98px; }
+      .topbar { min-height: 88px; padding: 20px 0 16px; }
+      .dashboard { grid-template-columns: 1fr 1fr; grid-template-areas: "summary summary" "stats stats" "med med" "alerts alerts" "routine routine" "recent recent" "quick quick"; }
+      .dashboard .content-grid { display: contents; }
+      .med-layout { grid-template-columns: 1fr; }
+      .routine-form { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .main { padding-right: 16px; padding-left: 16px; }
+      .topbar { gap: 10px; align-items: center; padding: 17px 0 14px; margin-bottom: 15px; }
+      h1 { font-size: 21px; }
+      .eyebrow { font-size: 10px; }
+      .top-actions { gap: 6px; }
+      .date-chip { display: none; }
+      .primary-button { min-height: 39px; padding: 0 10px; font-size: 11px; white-space: nowrap; }
+      .notification-button { width: 39px; min-width: 39px; min-height: 39px; justify-content: center; padding: 0; font-size: 0; }
+      .notification-button span { font-size: 15px; }
+      .dashboard { gap: 11px; }
+      .dashboard-summary { align-items: flex-start; flex-direction: column; gap: 3px; padding: 11px 13px; font-size: 12px; }
+      .dashboard-summary small { font-size: 11px; }
+      .stat-grid { gap: 7px; }
+      .stat-card { min-height: 82px; padding: 10px 8px; }
+      .stat-icon { flex-basis: 28px; width: 28px; height: 28px; margin-right: 7px; border-radius: 8px; font-size: 14px; }
+      .stat-label { font-size: 10px; line-height: 1.35; }
+      .stat-value { font-size: 19px; }
+      .stat-value small { font-size: 9px; }
+      .panel { padding: 16px 14px; border-radius: 10px; }
+      .panel-title { font-size: 14px; }
+      .panel-caption { font-size: 11px; }
+      .link-button { font-size: 11px; }
+      .quick-panel { padding: 16px 14px; }
+      .quick-actions { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+      .routine-form { grid-template-columns: 1fr; }
+      .routine-form .primary-button { width: 100%; }
+      .routine-preview-row { padding: 9px; }
+      .routine-preview-name, .routine-name { font-size: 11px; }
+      .routine-preview-date, .routine-meta { font-size: 10px; }
+      .routine-row { gap: 7px; padding: 9px; }
+      .routine-row { display: grid; grid-template-columns: minmax(0,1fr) auto; }
+      .routine-actions { grid-column: 1 / -1; justify-content: flex-end; }
+      .routine-actions { gap: 3px; }
+      .routine-done { min-height: 32px; padding: 0 7px; font-size: 10px; }
+      .routine-delete { width: 29px; height: 32px; }
+      .shopping-list-footer { align-items: flex-start; flex-direction: column; }
+      .shopping-list-footer .secondary-button { width: 100%; }
+      .quick-action { min-height: 46px; padding: 8px 9px; font-size: 11px; }
+      .med-dose-row { gap: 7px; padding: 8px; }
+      .med-dose-time { flex-basis: 43px; font-size: 11px; }
+      .med-dose-name { font-size: 11px; }
+      .med-dose-meta { font-size: 10px; }
+      .dose-button { min-width: 66px; min-height: 32px; padding: 0 7px; font-size: 10px; }
+      .dose-status { font-size: 9px; }
+      .alert-name, .activity-name { font-size: 11px; }
+      .alert-date, .activity-sub, .activity-kind { font-size: 10px; }
+      .list-toolbar { gap: 8px; }
+      .record-card { gap: 8px; padding: 10px; }
+      .record-detail { gap: 5px; font-size: 10px; }
+      .record-right { gap: 2px; }
+      .record-deadline { font-size: 9px; }
+      .record-deadline small { font-size: 8px; }
+      .modal-backdrop { padding: 8px; }
+      .modal { border-radius: 16px 16px 10px 10px; }
+      .modal-head h2 { font-size: 18px; }
+      .field label { font-size: 11px; }
+      .field input, .field select, .field textarea { font-size: 16px; }
+      .type-tab { font-size: 9px; }
+    }
+    @media (max-width: 380px) {
+      .main { padding-right: 12px; padding-left: 12px; }
+      .top-actions { gap: 4px; }
+      .primary-button { padding: 0 8px; font-size: 10px; }
+      .stat-card { padding-right: 6px; padding-left: 6px; }
+      .stat-icon { flex-basis: 25px; width: 25px; height: 25px; margin-right: 5px; }
+      .stat-label { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="주 메뉴">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">S</div>
+        <div><div class="brand-name">살림 기록</div><div class="brand-sub">HOUSEHOLD LOG</div></div>
+      </div>
+      <div class="nav-label">나의 기록</div>
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">▦</span><span>대시보드</span></button>
+        <button class="nav-item" data-view="expiry"><span class="nav-icon">◷</span><span>사용기한</span><span class="nav-count" id="navExpiryCount"></span></button>
+        <button class="nav-item" data-view="medications"><span class="nav-icon">＋</span><span>복용 체크</span><span class="nav-count" id="navMedCount"></span></button>
+        <button class="nav-item" data-view="laundry"><span class="nav-icon">◌</span><span>빨래</span></button>
+        <button class="nav-item" data-view="shopping"><span class="nav-icon">⌑</span><span>장보기</span></button>
+        <button class="nav-item" data-view="clothes"><span class="nav-icon">♧</span><span>옷 구매</span></button>
+        <button class="nav-item" data-view="routines"><span class="nav-icon">↻</span><span>반복 관리</span><span class="nav-count" id="navRoutineCount"></span></button>
+      </nav>
+      <div class="side-spacer"></div>
+      <div class="side-note"><div class="side-note-title">알림 상태</div><p id="sideNotificationStatus">브라우저 알림 꺼짐</p></div>
+      <div class="side-tools"><span>내 데이터</span><span><button class="text-button" id="exportButton">백업하기</button> · <button class="text-button" id="importButton">가져오기</button></span></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><div class="eyebrow">살림 기록</div><h1 id="pageTitle">대시보드</h1></div>
+        <div class="top-actions"><div class="date-chip" id="todayChip"></div><button class="notification-button" id="notificationButton" title="복용 시간과 사용기한 알림"><span>◷</span> 알림 켜기</button><button class="primary-button" id="openAdd"><span class="plus">＋</span> 기록 추가</button></div>
+      </header>
+
+      <section class="dashboard" id="dashboard">
+        <div class="dashboard-summary"><span><strong>오늘 일정</strong> · <span id="dashboardToday"></span></span><small id="dashboardSummaryText">복용 일정과 사용기한을 확인하세요.</small></div>
+        <div class="stat-grid">
+          <article class="stat-card"><div class="stat-icon">◌</div><div><div class="stat-label">이번 달 빨래</div><div class="stat-value"><span id="laundryStat">0</span><small>회 기록</small></div></div></article>
+          <article class="stat-card"><div class="stat-icon">⌑</div><div><div class="stat-label">이번 달 장보기</div><div class="stat-value"><span id="shoppingStat">0</span><small>회 기록</small></div></div></article>
+          <article class="stat-card"><div class="stat-icon">♧</div><div><div class="stat-label">이번 달 새 옷</div><div class="stat-value"><span id="clothesStat">0</span><small>건 기록</small></div></div></article>
+        </div>
+        <section class="panel med-panel">
+          <div class="panel-heading"><div><h2 class="panel-title">오늘 복용</h2><p class="panel-caption">등록한 시간에 복용 여부를 체크하세요</p></div><button class="link-button" data-open-view="medications">약 관리 →</button></div>
+          <div class="med-dose-list" id="dashboardDoseList"></div>
+        </section>
+        <section class="panel routine-preview-panel">
+          <div class="panel-heading"><div><h2 class="panel-title">반복 일정</h2><p class="panel-caption">주기적으로 챙길 집안일</p></div><button class="link-button" data-open-view="routines">관리 →</button></div>
+          <div class="routine-preview-list" id="dashboardRoutineList"></div>
+        </section>
+        <div class="content-grid">
+          <section class="panel">
+            <div class="panel-heading"><div><h2 class="panel-title">기한 임박</h2><p class="panel-caption">60일 이내 사용기한</p></div><button class="link-button" data-open-view="expiry">전체 보기 →</button></div>
+            <div class="alert-list" id="alertList"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-heading"><div><h2 class="panel-title">최근 기록</h2><p class="panel-caption">최근 입력한 항목</p></div><button class="link-button" data-open-view="all">모두 보기 →</button></div>
+            <div class="activity-list" id="activityList"></div>
+          </section>
+        </div>
+        <section class="panel quick-panel">
+          <div class="panel-heading"><div><h2 class="panel-title">빠른 입력</h2><p class="panel-caption">기록 종류 선택</p></div></div>
+          <div class="quick-actions">
+            <button class="quick-action" data-add="laundry"><span>◌</span><span>빨래 등록</span></button>
+            <button class="quick-action" data-add="shopping"><span>⌑</span><span>장보기 등록</span></button>
+            <button class="quick-action" data-add="clothes"><span>♧</span><span>옷 구매 등록</span></button>
+            <button class="quick-action" data-add="food"><span>◉</span><span>식품 기한</span></button>
+            <button class="quick-action" data-add="cosmetic"><span>✿</span><span>화장품 기한</span></button>
+            <button class="quick-action" data-open-view="shopping"><span>☑</span><span>장보기 목록</span></button>
+            <button class="quick-action" data-open-view="routines"><span>↻</span><span>반복 일정</span></button>
+          </div>
+        </section>
+      </section>
+
+      <section class="list-section" id="listSection">
+        <div class="panel-heading"><div><h2 class="panel-title" id="listTitle">기록</h2><p class="panel-caption" id="listCaption"></p></div><button class="primary-button" id="listAdd"><span class="plus">＋</span> 새 기록</button></div>
+        <div class="list-toolbar"><div class="search-wrap"><span>⌕</span><input class="search-input" type="search" id="searchInput" placeholder="이름이나 메모 검색" aria-label="기록 검색"></div><select class="sort-select" id="sortSelect" aria-label="정렬"><option value="newest">최근 기록순</option><option value="oldest">오래된 순</option></select></div>
+        <section class="panel shopping-list-panel" id="shoppingListPanel">
+          <div class="panel-heading"><div><h2 class="panel-title">살 것</h2><p class="panel-caption">체크한 항목은 장보기 기록으로 저장할 수 있어요.</p></div><span class="shopping-count" id="shoppingCount">0개</span></div>
+          <div class="shopping-entry"><input id="shoppingItemInput" type="text" maxlength="100" placeholder="예: 우유, 달걀" aria-label="장보기 품목"><button class="primary-button" id="addShoppingItem" type="button">추가</button></div>
+          <div class="shopping-items" id="shoppingItems"></div>
+          <div class="shopping-list-footer"><span id="shoppingCheckedCount">체크한 항목 0개</span><button class="secondary-button" id="saveShoppingPurchase" type="button" disabled>구매 기록에 담기</button></div>
+        </section>
+        <div class="record-list" id="recordList"></div>
+        <div class="storage-note">기록·사진·일정은 이 브라우저에 저장됩니다. <button class="text-button" id="backupInline">백업 파일 만들기</button></div>
+      </section>
+
+      <section class="med-section" id="medSection">
+        <div class="panel-heading"><div><h2 class="panel-title">복용 체크</h2><p class="panel-caption">약과 복용 시간을 등록하고 오늘 복용을 기록합니다.</p></div><button class="primary-button" id="addMedication"><span class="plus">＋</span> 약 추가</button></div>
+        <div class="med-layout">
+          <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">오늘 복용 일정</h2><p class="panel-caption" id="medTodayCaption"></p></div></div><div class="med-dose-list" id="medDoseList"></div></section>
+          <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">등록된 약</h2><p class="panel-caption">약 이름, 시간, 요일</p></div></div><div class="med-list" id="medList"></div><p class="med-disclaimer">복용 여부 기록용입니다. 복용량·복용법은 처방 및 제품 설명을 따르세요.</p></section>
+        </div>
+      </section>
+      <section class="routine-section" id="routineSection">
+        <div class="panel-heading"><div><h2 class="panel-title">반복 관리</h2><p class="panel-caption">정기적으로 챙길 집안일을 등록하고 다음 일정을 관리합니다.</p></div><button class="secondary-button" id="exportCalendar" type="button">캘린더 내보내기</button></div>
+        <section class="panel routine-form-panel">
+          <div class="routine-form-heading"><div><h2 class="panel-title">일정 추가</h2><p class="panel-caption">세탁조 청소, 필터 교체, 침구 세탁 등을 등록하세요.</p></div></div>
+          <form class="routine-form" id="routineForm">
+            <div class="field"><label for="routineName">할 일</label><input id="routineName" name="name" required maxlength="80" placeholder="예: 정수기 필터 교체"></div>
+            <div class="field"><label for="routineNextDate">다음 날짜</label><input id="routineNextDate" name="nextDate" type="date" required></div>
+            <div class="field"><label for="routineCadence">반복 주기</label><select id="routineCadence" name="cadence"><option value="P7D">매주</option><option value="P14D">2주마다</option><option value="P1M" selected>매월</option><option value="P3M">3개월마다</option><option value="P6M">6개월마다</option><option value="P1Y">매년</option></select></div>
+            <button class="primary-button" id="routineSubmitButton" type="submit"><span class="plus">＋</span> 일정 등록</button>
+          </form>
+        </section>
+        <section class="panel routine-list-panel"><div class="panel-heading"><div><h2 class="panel-title">등록한 일정</h2><p class="panel-caption">완료하면 선택한 주기만큼 다음 날짜가 자동으로 바뀝니다.</p></div></div><div class="routine-list" id="routineList"></div></section>
+        <p class="calendar-note">캘린더 내보내기는 반복 일정을 .ics 파일로 저장합니다. 파일을 Google Calendar 또는 Apple 캘린더에 가져오면 기기 캘린더 알림을 사용할 수 있어요.</p>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-head"><div><h2 id="modalTitle">새 기록</h2><p>입력한 정보는 이 브라우저에 저장됩니다.</p></div><button class="close-button" id="closeModal" aria-label="닫기">×</button></div>
+      <div class="type-tabs" id="typeTabs">
+        <button class="type-tab active" data-type="laundry"><span>◌</span>빨래</button>
+        <button class="type-tab" data-type="shopping"><span>⌑</span>장보기</button>
+        <button class="type-tab" data-type="clothes"><span>♧</span>옷 구매</button>
+        <button class="type-tab" data-type="food"><span>◉</span>식품</button>
+        <button class="type-tab" data-type="cosmetic"><span>✿</span>화장품</button>
+      </div>
+      <form id="recordForm">
+        <div class="form-body"><div class="form-grid" id="formFields"></div><div class="calc-preview" id="calcPreview" hidden></div></div>
+        <div class="form-footer"><button type="button" class="secondary-button" id="cancelModal">취소</button><button type="submit" class="primary-button">기록 저장</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="medModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="medModalTitle">
+    <div class="modal">
+      <div class="modal-head"><div><h2 id="medModalTitle">약 추가</h2><p>이름과 복용 일정만 입력하면 됩니다.</p></div><button class="close-button" id="closeMedModal" aria-label="닫기">×</button></div>
+      <form id="medForm">
+        <div class="form-body"><div class="form-grid">
+          <div class="field full"><label for="medName">약 이름</label><input id="medName" name="name" required maxlength="80" placeholder="예: 비타민 D"></div>
+          <div class="field full"><label for="medDose">복용량 <span class="hint">선택</span></label><input id="medDose" name="dose" maxlength="40" placeholder="예: 1정, 5ml"></div>
+          <div class="field full"><label>복용 시간</label><div id="medTimes"></div><button class="secondary-button" type="button" id="addMedTime">＋ 시간 추가</button></div>
+          <div class="field full"><label>복용 요일</label><div class="day-picker" id="dayPicker"></div></div>
+          <div class="field"><label for="medStartDate">시작일 <span class="hint">선택</span></label><input id="medStartDate" name="startDate" type="date"></div>
+          <div class="field"><label for="medEndDate">종료일 <span class="hint">선택</span></label><input id="medEndDate" name="endDate" type="date"></div>
+        </div><p class="med-disclaimer">알림은 이 앱이 열려 있고 브라우저 알림을 허용한 동안 전송됩니다. 앱을 닫은 시간의 미복용 일정은 다음 방문 시 표시됩니다.</p></div>
+        <div class="form-footer"><button type="button" class="secondary-button" id="cancelMedModal">취소</button><button type="submit" class="primary-button" id="saveMedicationButton">약 저장</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="photo-viewer" id="photoViewer"><button type="button" id="closePhotoViewer" aria-label="사진 닫기">×</button><img id="photoViewerImage" alt="첨부 사진 크게 보기"></div>
+  <input type="file" id="importFile" accept="application/json,.json">
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const KEY = 'salimnote-records-v1';
+      const MEDS_KEY = 'salimnote-medicines-v1';
+      const CHECKS_KEY = 'salimnote-med-checks-v1';
+      const NOTIFIED_KEY = 'salimnote-notified-v1';
+      const NOTIFICATION_ENABLED_KEY = 'salimnote-notifications-enabled-v1';
+      const ROUTINES_KEY = 'salimnote-routines-v1';
+      const SHOPPING_LIST_KEY = 'salimnote-shopping-list-v1';
+      const icons = { laundry: '◌', shopping: '⌑', clothes: '♧', food: '◉', cosmetic: '✿' };
+      const labels = { laundry: '빨래', shopping: '장보기', clothes: '옷 구매', food: '식품', cosmetic: '화장품' };
+      const cosmeticDefaults = { mascara: 3, eyeliner: 6, skincare: 12, cream: 6, sunscreen: 12, makeup: 12, other: 6 };
+      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+      let today = localDateString(new Date());
+      let records = loadRecords();
+      let medicines = loadJson(MEDS_KEY, []);
+      let medicationChecks = loadJson(CHECKS_KEY, {});
+      let notified = loadJson(NOTIFIED_KEY, {});
+      let routines = loadJson(ROUTINES_KEY, []);
+      let shoppingList = loadJson(SHOPPING_LIST_KEY, []);
+      if (!Array.isArray(routines)) routines = [];
+      if (!Array.isArray(shoppingList)) shoppingList = [];
+      let notificationsEnabled = localStorage.getItem(NOTIFICATION_ENABLED_KEY) === 'true';
+      let currentView = 'overview';
+      let currentType = 'laundry';
+      let editingItem = null;
+      let editingMedicineId = null;
+      let editingRoutineId = null;
+      let toastTimer;
+
+      function localDateString(date) {
+        const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return d.toISOString().slice(0, 10);
+      }
+      function dateObject(value) { return value ? new Date(value + 'T12:00:00') : null; }
+      function addDays(dateValue, days) {
+        const d = dateObject(dateValue);
+        if (!d) return '';
+        d.setDate(d.getDate() + Number(days || 0));
+        return localDateString(d);
+      }
+      function formatDate(value, withYear = true) {
+        const d = dateObject(value);
+        if (!d || Number.isNaN(d.getTime())) return '날짜 없음';
+        return new Intl.DateTimeFormat('ko-KR', { year: withYear ? 'numeric' : undefined, month: 'long', day: 'numeric' }).format(d);
+      }
+      function daysUntil(value) {
+        const target = dateObject(value); const base = dateObject(today);
+        if (!target || !base) return Infinity;
+        return Math.round((target - base) / 86400000);
+      }
+      function addMonths(dateValue, months) {
+        const d = dateObject(dateValue);
+        if (!d) return '';
+        const day = d.getDate();
+        d.setDate(1); d.setMonth(d.getMonth() + Number(months || 0));
+        const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+        d.setDate(Math.min(day, lastDay));
+        return localDateString(d);
+      }
+      function cadenceLabel(cadence) {
+        return ({ P7D: '매주', P14D: '2주마다', P1M: '매월', P3M: '3개월마다', P6M: '6개월마다', P1Y: '매년' })[cadence] || '매월';
+      }
+      function advanceRoutineDate(dateValue, cadence) {
+        const match = /^P(\d+)([DMY])$/.exec(cadence || 'P1M');
+        if (!match) return addMonths(dateValue, 1);
+        const amount = Number(match[1]);
+        if (match[2] === 'D') return addDays(dateValue, amount);
+        return addMonths(dateValue, amount * (match[2] === 'Y' ? 12 : 1));
+      }
+      function safeDeadline(item) {
+        if (item.kind === 'food') return item.expiryDate || '';
+        if (item.kind === 'cosmetic') {
+          const opened = addMonths(item.openedAt, item.paoMonths);
+          if (item.labelDate && opened) return item.labelDate < opened ? item.labelDate : opened;
+          return item.labelDate || opened;
+        }
+        return '';
+      }
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+      }
+      function loadRecords() {
+        try { const value = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(value) ? value : []; }
+        catch { return []; }
+      }
+      function loadJson(key, fallback) {
+        try { const value = JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); return value ?? fallback; }
+        catch { return fallback; }
+      }
+      function save() { localStorage.setItem(KEY, JSON.stringify(records)); }
+      function saveMedicines() { localStorage.setItem(MEDS_KEY, JSON.stringify(medicines)); }
+      function saveChecks() { localStorage.setItem(CHECKS_KEY, JSON.stringify(medicationChecks)); }
+      function saveNotified() { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notified)); }
+      function saveRoutines() { localStorage.setItem(ROUTINES_KEY, JSON.stringify(routines)); }
+      function saveShoppingList() { localStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(shoppingList)); }
+      function showToast(message) {
+        const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show');
+        clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2300);
+      }
+      function activityDate(item) { return item.kind === 'cosmetic' ? (item.openedAt || item.registeredAt || today) : (item.date || item.registeredAt || today); }
+      function sortedRecords(items = records) { return [...items].sort((a,b) => (activityDate(b) || '').localeCompare(activityDate(a) || '')); }
+      function expiringRecords() {
+        return records.filter(x => x.kind === 'food' || x.kind === 'cosmetic').map(x => ({ ...x, deadline: safeDeadline(x) }))
+          .filter(x => x.deadline && daysUntil(x.deadline) <= 60).sort((a,b) => a.deadline.localeCompare(b.deadline));
+      }
+      function deadlineLabel(item) {
+        const days = daysUntil(item.deadline);
+        if (days < 0) return { text: `${Math.abs(days)}일 지남`, className: 'past' };
+        if (days === 0) return { text: '오늘까지', className: 'urgent' };
+        return { text: `D-${days}`, className: days <= 7 ? 'urgent' : '' };
+      }
+      function doseKey(medId, date, time) { return `${medId}|${date}|${time}`; }
+      function scheduledToday(med, date = today) {
+        const day = dateObject(date)?.getDay();
+        if (day === undefined || !(med.days || [0,1,2,3,4,5,6]).includes(day)) return false;
+        if (med.startDate && date < med.startDate) return false;
+        if (med.endDate && date > med.endDate) return false;
+        return true;
+      }
+      function timeMinutes(value) {
+        const [h, m] = String(value || '00:00').split(':').map(Number);
+        return h * 60 + m;
+      }
+      function todayDoses() {
+        return medicines.filter(med => scheduledToday(med)).flatMap(med => (med.times || []).map(time => ({
+          med, time, key: doseKey(med.id, today, time), done: Boolean(medicationChecks[doseKey(med.id, today, time)])
+        }))).sort((a, b) => a.time.localeCompare(b.time) || a.med.name.localeCompare(b.med.name, 'ko'));
+      }
+      function currentMinutes() { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+      function renderDoseRows(container, compact = false) {
+        const doses = todayDoses();
+        if (!doses.length) {
+          container.innerHTML = `<div class="empty-state"><strong>오늘 등록된 복용 일정이 없습니다</strong><span>약 관리에서 약과 시간을 추가하세요.</span></div>`;
+          return;
+        }
+        const now = currentMinutes();
+        container.innerHTML = doses.map(({ med, time, key, done }) => {
+          const late = !done && now >= timeMinutes(time);
+          const state = done ? '완료' : late ? '미체크' : '예정';
+          return `<div class="med-dose-row"><div class="med-dose-time">${escapeHtml(time)}</div><div class="med-dose-copy"><div class="med-dose-name">${escapeHtml(med.name)}</div><div class="med-dose-meta">${escapeHtml(med.dose || '복용량 미입력')}${late ? ' · 예정 시간 지남' : ''}</div></div><span class="dose-status ${done ? 'done' : late ? 'late' : ''}">${state}</span><button class="dose-button ${done ? 'done' : ''}" data-dose-id="${escapeHtml(med.id)}" data-dose-time="${escapeHtml(time)}">${done ? '체크 취소' : '복용 완료'}</button></div>`;
+        }).join('');
+      }
+      function renderMedicineList() {
+        const target = document.getElementById('medList');
+        if (!medicines.length) {
+          target.innerHTML = `<div class="empty-state"><strong>등록된 약이 없습니다</strong><span>복용할 약을 추가해 일정을 설정하세요.</span></div>`;
+          return;
+        }
+        target.innerHTML = medicines.map(med => {
+          const times = (med.times || []).slice().sort().join(' · ');
+          const days = (med.days || [0,1,2,3,4,5,6]).map(d => weekdays[d]).join(' ');
+          const range = [med.startDate ? `${formatDate(med.startDate, false)} 시작` : '', med.endDate ? `${formatDate(med.endDate, false)} 종료` : ''].filter(Boolean).join(' · ');
+          return `<article class="med-card"><div class="record-icon">＋</div><div class="med-card-main"><div class="med-card-name">${escapeHtml(med.name)}</div><div class="med-card-info">${escapeHtml(med.dose || '복용량 미입력')} · ${escapeHtml(times)}<br>${escapeHtml(days)}${range ? ` · ${escapeHtml(range)}` : ''}</div></div><div class="med-card-actions"><button class="edit-button" data-edit-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 수정" title="수정">✎</button><button class="delete-button" data-delete-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 삭제" title="삭제">×</button></div></article>`;
+        }).join('');
+      }
+      function renderMedications() {
+        renderDoseRows(document.getElementById('dashboardDoseList'), true);
+        renderDoseRows(document.getElementById('medDoseList'));
+        renderMedicineList();
+        const doses = todayDoses();
+        const missed = doses.filter(d => !d.done && currentMinutes() >= timeMinutes(d.time)).length;
+        document.getElementById('medTodayCaption').textContent = `${doses.filter(d => d.done).length}/${doses.length}회 완료${missed ? ` · 미체크 ${missed}회` : ''}`;
+        document.getElementById('navMedCount').textContent = missed ? missed : '';
+        const summary = document.getElementById('dashboardSummaryText');
+        if (summary) summary.textContent = `복용 ${doses.filter(d => d.done).length}/${doses.length}회 완료 · 오늘 할 일 ${routines.filter(item => daysUntil(item.nextDate) <= 0).length}개 · 사용기한 임박 ${expiringRecords().length}개`;
+      }
+      function renderNotificationButton() {
+        const button = document.getElementById('notificationButton');
+        button.classList.toggle('enabled', notificationsEnabled);
+        button.title = '복용 예정 시간, 사용기한, 반복 일정 알림';
+        button.innerHTML = `<span>◷</span> ${notificationsEnabled ? '알림 끄기' : '알림 켜기'}`;
+        document.getElementById('sideNotificationStatus').textContent = notificationsEnabled ? '브라우저 알림 켜짐' : '브라우저 알림 꺼짐';
+      }
+      async function toggleNotifications() {
+        if (notificationsEnabled) {
+          notificationsEnabled = false;
+          localStorage.setItem(NOTIFICATION_ENABLED_KEY, 'false');
+          renderNotificationButton(); showToast('브라우저 알림을 껐어요.'); return;
+        }
+        if (!('Notification' in window)) { showToast('이 브라우저에서는 알림을 지원하지 않아요.'); return; }
+        try {
+          const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+          if (permission !== 'granted') { showToast('브라우저 설정에서 알림을 허용해 주세요.'); return; }
+          notificationsEnabled = true;
+          localStorage.setItem(NOTIFICATION_ENABLED_KEY, 'true');
+          renderNotificationButton(); showToast('복용·사용기한·반복 일정 알림을 켰어요.'); checkNotifications();
+        } catch { showToast('알림 권한을 설정하지 못했어요.'); }
+      }
+      function sendBrowserNotification(title, body, tag, view) {
+        if (!notificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+        try {
+          const notification = new Notification(title, { body, tag });
+          notification.onclick = () => { window.focus(); switchView(view); notification.close(); };
+        } catch { showToast('브라우저 알림을 표시하지 못했어요.'); }
+      }
+      function checkNotifications() {
+        const currentDate = localDateString(new Date());
+        if (currentDate !== today) { today = currentDate; render(); }
+        if (!notificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+        for (const item of records.filter(x => x.kind === 'food' || x.kind === 'cosmetic')) {
+          const deadline = safeDeadline(item); const days = daysUntil(deadline);
+          if (!deadline || days < 0 || days > 3) continue;
+          const key = `expiry:${item.id}:${deadline}`;
+          if (notified[key]) continue;
+          notified[key] = new Date().toISOString(); saveNotified();
+          sendBrowserNotification('사용기한 확인', `${item.name} · ${days < 0 ? `${Math.abs(days)}일 지남` : days === 0 ? '오늘까지' : `${days}일 남음`}`, key, 'expiry');
+        }
+        for (const routine of routines) {
+          if (daysUntil(routine.nextDate) !== 0) continue;
+          const key = `routine:${routine.id}:${routine.nextDate}`;
+          if (notified[key]) continue;
+          notified[key] = new Date().toISOString(); saveNotified();
+          sendBrowserNotification('오늘 반복 일정', `${routine.name} 일정이 오늘이에요.`, key, 'routines');
+        }
+        const now = currentMinutes();
+        for (const dose of todayDoses()) {
+          if (dose.done) continue;
+          const overdue = now - timeMinutes(dose.time);
+          if (overdue < 0) continue;
+          const stage = overdue >= 60 ? 'followup' : 'due';
+          const key = `med:${dose.key}:${stage}`;
+          if (notified[key]) continue;
+          notified[key] = new Date().toISOString(); saveNotified();
+          sendBrowserNotification('복용 확인이 필요해요', `${dose.med.name} · ${dose.time} 복용 일정이 체크되지 않았어요.`, key, 'medications');
+        }
+      }
+      function toggleDose(medId, time) {
+        const key = doseKey(medId, today, time);
+        if (medicationChecks[key]) delete medicationChecks[key];
+        else medicationChecks[key] = new Date().toISOString();
+        saveChecks(); render();
+      }
+      function routineDueText(date) {
+        const days = daysUntil(date);
+        if (!Number.isFinite(days)) return '날짜 없음';
+        if (days < 0) return `${Math.abs(days)}일 지남`;
+        if (days === 0) return '오늘';
+        return `${days}일 후`;
+      }
+      function renderRoutinePreview() {
+        const target = document.getElementById('dashboardRoutineList');
+        const upcoming = [...routines].sort((a,b) => (a.nextDate || '').localeCompare(b.nextDate || '')).slice(0,3);
+        target.innerHTML = upcoming.length ? upcoming.map(item => {
+          const days = daysUntil(item.nextDate);
+          const state = days < 0 ? 'overdue' : days === 0 ? 'urgent' : '';
+          return `<div class="routine-preview-row"><div class="routine-preview-copy"><div class="routine-preview-name">${escapeHtml(item.name)}</div><div class="routine-preview-date">${formatDate(item.nextDate, false)} · ${cadenceLabel(item.cadence)}</div></div><span class="routine-due ${state}">${routineDueText(item.nextDate)}</span></div>`;
+        }).join('') : `<div class="empty-state"><strong>등록된 반복 일정이 없습니다</strong><span>집안일을 등록하면 다음 날짜를 보여드려요.</span></div>`;
+      }
+      function renderRoutines() {
+        const target = document.getElementById('routineList');
+        const sorted = [...routines].sort((a,b) => (a.nextDate || '').localeCompare(b.nextDate || ''));
+        const dueCount = routines.filter(item => daysUntil(item.nextDate) <= 0).length;
+        document.getElementById('navRoutineCount').textContent = dueCount || '';
+        target.innerHTML = sorted.length ? sorted.map(item => {
+          const days = daysUntil(item.nextDate);
+          const state = days < 0 ? 'overdue' : days === 0 ? 'urgent' : '';
+          const doneLabel = item.lastDone ? `마지막 완료 ${formatDate(item.lastDone, false)}` : '아직 완료 기록 없음';
+          return `<article class="routine-row"><div class="routine-copy"><div class="routine-name">${escapeHtml(item.name)}</div><div class="routine-meta">${cadenceLabel(item.cadence)} · ${doneLabel}</div></div><span class="routine-due ${state}">${formatDate(item.nextDate, false)} · ${routineDueText(item.nextDate)}</span><div class="routine-actions"><button class="edit-button" type="button" data-routine-edit="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 수정" title="수정">✎</button><button class="routine-done" type="button" data-routine-done="${escapeHtml(item.id)}">완료</button><button class="routine-delete" type="button" data-routine-delete="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 삭제" title="삭제">×</button></div></article>`;
+        }).join('') : `<div class="empty-state"><strong>등록된 일정이 없습니다</strong><span>위 입력란에서 반복할 집안일을 추가하세요.</span></div>`;
+        renderRoutinePreview();
+      }
+      function renderShoppingList() {
+        const target = document.getElementById('shoppingItems');
+        const checked = shoppingList.filter(item => item.done);
+        document.getElementById('shoppingCount').textContent = `${shoppingList.length}개`;
+        document.getElementById('shoppingCheckedCount').textContent = `체크한 항목 ${checked.length}개`;
+        document.getElementById('saveShoppingPurchase').disabled = checked.length === 0;
+        target.innerHTML = shoppingList.length ? shoppingList.map(item => `<div class="shopping-item ${item.done ? 'checked' : ''}"><input type="checkbox" data-shopping-toggle="${escapeHtml(item.id)}" ${item.done ? 'checked' : ''} aria-label="${escapeHtml(item.name)} 구매 여부"><span class="shopping-item-name">${escapeHtml(item.name)}</span><button class="shopping-remove" type="button" data-shopping-remove="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 삭제">×</button></div>`).join('') : `<div class="empty-state"><strong>장보기 목록이 비어 있어요</strong><span>살 물건을 입력하고 추가해 주세요.</span></div>`;
+      }
+      function addShoppingListItem() {
+        const input = document.getElementById('shoppingItemInput');
+        const name = input.value.trim();
+        if (!name) { input.focus(); return; }
+        const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        shoppingList.unshift({ id, name, done: false, createdAt: today });
+        saveShoppingList(); input.value = ''; renderShoppingList(); input.focus();
+      }
+      function saveCheckedShoppingItems() {
+        const checked = shoppingList.filter(item => item.done);
+        if (!checked.length) return;
+        const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        records.unshift({ id, kind: 'shopping', name: `장보기 ${checked.length}개`, note: checked.map(item => item.name).join(', '), date: today, registeredAt: today });
+        shoppingList = shoppingList.filter(item => !item.done);
+        save(); saveShoppingList(); render(); showToast(`${checked.length}개 품목을 장보기 기록에 저장했어요.`);
+      }
+      function saveRoutine(event) {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const name = String(data.get('name') || '').trim();
+        const nextDate = String(data.get('nextDate') || '');
+        const cadence = String(data.get('cadence') || 'P1M');
+        if (!name || !nextDate) return;
+        const old = routines.find(item => item.id === editingRoutineId);
+        const id = old?.id || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+        const updated = { ...(old || {}), id, name, nextDate, cadence, createdAt: old?.createdAt || today, lastDone: old?.lastDone || '' };
+        routines = old ? routines.map(item => item.id === id ? updated : item) : [...routines, updated];
+        editingRoutineId = null;
+        saveRoutines(); event.currentTarget.reset(); document.getElementById('routineNextDate').value = today;
+        document.getElementById('routineSubmitButton').innerHTML = '<span class="plus">＋</span> 일정 등록';
+        render(); showToast(old ? '반복 일정을 수정했어요.' : '반복 일정을 등록했어요.');
+      }
+      function editRoutine(id) {
+        const item = routines.find(routine => routine.id === id);
+        if (!item) return;
+        editingRoutineId = item.id;
+        document.getElementById('routineName').value = item.name;
+        document.getElementById('routineNextDate').value = item.nextDate;
+        document.getElementById('routineCadence').value = item.cadence || 'P1M';
+        document.getElementById('routineSubmitButton').innerHTML = '수정 저장';
+        document.getElementById('routineForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('routineName').focus({ preventScroll: true });
+      }
+      function completeRoutine(id) {
+        const item = routines.find(routine => routine.id === id);
+        if (!item) return;
+        item.lastDone = today;
+        item.nextDate = advanceRoutineDate(today, item.cadence);
+        saveRoutines(); render(); showToast(`완료했어요. 다음 일정은 ${formatDate(item.nextDate, false)}예요.`);
+      }
+      function deleteRoutine(id) {
+        const item = routines.find(routine => routine.id === id);
+        if (!item || !window.confirm(`“${item.name}” 반복 일정을 삭제할까요?`)) return;
+        routines = routines.filter(routine => routine.id !== id); saveRoutines(); render(); showToast('반복 일정을 삭제했어요.');
+      }
+      function escapeIcs(value) {
+        return String(value ?? '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+      }
+      function calendarDate(value) { return String(value || today).replaceAll('-', ''); }
+      function foldIcsLine(line) {
+        const encoder = new TextEncoder();
+        const parts = []; let current = ''; let size = 0;
+        for (const character of String(line)) {
+          const width = encoder.encode(character).length;
+          if (size + width > 75) { parts.push(current); current = character; size = width + 1; }
+          else { current += character; size += width; }
+        }
+        parts.push(current);
+        return parts.join('\r\n ');
+      }
+      function calendarRule(cadence) {
+        if (cadence === 'P7D') return 'FREQ=DAILY;INTERVAL=7';
+        if (cadence === 'P14D') return 'FREQ=DAILY;INTERVAL=14';
+        if (cadence === 'P3M') return 'FREQ=MONTHLY;INTERVAL=3';
+        if (cadence === 'P6M') return 'FREQ=MONTHLY;INTERVAL=6';
+        if (cadence === 'P1Y') return 'FREQ=YEARLY;INTERVAL=1';
+        return 'FREQ=MONTHLY;INTERVAL=1';
+      }
+      function exportCalendar() {
+        if (!routines.length) { showToast('먼저 반복 일정을 등록해 주세요.'); return; }
+        const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+        const events = routines.map(item => [
+          'BEGIN:VEVENT',
+          `UID:${escapeIcs(item.id)}@salim-note.local`,
+          `DTSTAMP:${stamp}`,
+          `DTSTART;VALUE=DATE:${calendarDate(item.nextDate)}`,
+          'DURATION:P1D',
+          `RRULE:${calendarRule(item.cadence)}`,
+          `SUMMARY:${escapeIcs(item.name)}`,
+          `DESCRIPTION:${escapeIcs(`살림 기록 반복 일정 · ${cadenceLabel(item.cadence)}`)}`,
+          'BEGIN:VALARM',
+          'ACTION:DISPLAY',
+          `DESCRIPTION:${escapeIcs(`${item.name} 일정이 오늘이에요.`)}`,
+          'TRIGGER;RELATED=START:PT9H',
+          'END:VALARM',
+          'END:VEVENT'
+        ].join('\r\n')).join('\r\n');
+        const calendar = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Salim Note//Household Routine//KO\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:살림 기록 반복 일정\r\n${events}\r\nEND:VCALENDAR\r\n`;
+        const foldedCalendar = calendar.split('\r\n').map(foldIcsLine).join('\r\n');
+        const blob = new Blob([foldedCalendar], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob); const link = document.createElement('a');
+        link.href = url; link.download = `살림기록-반복일정-${today}.ics`; link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000); showToast('캘린더 파일을 저장했어요.');
+      }
+      function render() {
+        today = localDateString(new Date());
+        renderDate(); renderDashboard(); renderList(); renderMedications(); renderRoutines(); renderShoppingList(); renderNotificationButton(); updateNav();
+        const addLabel = currentView === 'medications' ? '약 추가' : currentView === 'routines' ? '일정 추가' : '기록 추가';
+        document.getElementById('openAdd').innerHTML = `<span class="plus">＋</span> ${addLabel}`;
+        const nextDate = document.getElementById('routineNextDate');
+        if (nextDate && !nextDate.value) nextDate.value = today;
+      }
+      function renderDate() {
+        const d = new Date();
+        document.getElementById('todayChip').textContent = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }).format(d);
+        document.getElementById('dashboardToday').textContent = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }).format(d);
+      }
+      function renderDashboard() {
+        const thisMonth = today.slice(0,7);
+        document.getElementById('laundryStat').textContent = records.filter(x => x.kind === 'laundry' && activityDate(x).startsWith(thisMonth)).length;
+        document.getElementById('shoppingStat').textContent = records.filter(x => x.kind === 'shopping' && activityDate(x).startsWith(thisMonth)).length;
+        document.getElementById('clothesStat').textContent = records.filter(x => x.kind === 'clothes' && activityDate(x).startsWith(thisMonth)).length;
+        const alerts = expiringRecords();
+        document.getElementById('navExpiryCount').textContent = alerts.length || '';
+        const alertList = document.getElementById('alertList');
+        if (!alerts.length) {
+          alertList.innerHTML = `<div class="empty-state"><strong>기한 임박 항목 없음</strong><span>식품·화장품을 등록하면 이곳에 표시됩니다.</span></div>`;
+        } else {
+          alertList.innerHTML = alerts.slice(0,4).map(item => {
+            const due = deadlineLabel(item);
+            return `<div class="alert-row ${due.className === 'urgent' || due.className === 'past' ? 'urgent' : ''}"><div class="alert-symbol">${icons[item.kind]}</div><div class="alert-meta"><div class="alert-name">${escapeHtml(item.name)}</div><div class="alert-date">${labels[item.kind]} · ${formatDate(item.deadline, false)}까지</div></div><span class="deadline ${due.className}">${due.text}</span></div>`;
+          }).join('');
+        }
+        const activity = sortedRecords().slice(0,4);
+        const activityList = document.getElementById('activityList');
+        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div>`;
+      }
+      function viewItems() {
+        if (currentView === 'expiry') return sortedRecords(records.filter(x => x.kind === 'food' || x.kind === 'cosmetic'));
+        if (currentView === 'laundry') return sortedRecords(records.filter(x => x.kind === 'laundry'));
+        if (currentView === 'shopping') return sortedRecords(records.filter(x => x.kind === 'shopping'));
+        if (currentView === 'clothes') return sortedRecords(records.filter(x => x.kind === 'clothes'));
+        return sortedRecords();
+      }
+      function renderList() {
+        const isMedicationView = currentView === 'medications';
+        const isRoutineView = currentView === 'routines';
+        const isList = currentView !== 'overview' && !isMedicationView && !isRoutineView;
+        document.getElementById('dashboard').style.display = currentView === 'overview' ? 'grid' : 'none';
+        document.getElementById('listSection').classList.toggle('visible', isList);
+        document.getElementById('medSection').classList.toggle('visible', isMedicationView);
+        document.getElementById('routineSection').classList.toggle('visible', isRoutineView);
+        document.getElementById('shoppingListPanel').classList.toggle('visible', currentView === 'shopping');
+        if (!isList) return;
+        const titleMap = { all: ['모든 기록', '전체 생활 기록'], expiry: ['사용기한', '식품 표시기한과 화장품 권장 사용기한'], laundry: ['빨래', '세탁 날짜와 메모'], shopping: ['장보기', '장보기 날짜와 구매 품목'], clothes: ['옷 구매', '구매 날짜와 가격'] };
+        document.getElementById('listTitle').textContent = titleMap[currentView]?.[0] || '모든 기록';
+        document.getElementById('listCaption').textContent = titleMap[currentView]?.[1] || '';
+        const q = document.getElementById('searchInput').value.trim().toLowerCase();
+        let items = viewItems().filter(item => !q || [item.name, item.note, labels[item.kind]].filter(Boolean).join(' ').toLowerCase().includes(q));
+        if (document.getElementById('sortSelect').value === 'oldest') items = items.reverse();
+        const list = document.getElementById('recordList');
+        if (!items.length) {
+          list.innerHTML = `<div class="panel empty-state"><strong>${q ? '검색 결과 없음' : '기록 없음'}</strong><span>${q ? '다른 검색어를 입력하세요.' : '새 기록 버튼으로 항목을 추가하세요.'}</span></div>`;
+          return;
+        }
+        list.innerHTML = items.map(item => recordCard(item)).join('');
+      }
+      function recordCard(item) {
+        const date = activityDate(item);
+        let details = [`${labels[item.kind]}`, formatDate(date, false)];
+        let deadline = '';
+        if (item.kind === 'food' || item.kind === 'cosmetic') {
+          const due = safeDeadline(item); const d = deadlineLabel({ deadline: due });
+          const secondary = item.kind === 'food' ? (item.dateType || '기한') : `개봉 후 ${item.paoMonths}개월`;
+          details.push(secondary);
+          deadline = `<div class="record-deadline"><small>${item.kind === 'cosmetic' ? '권장 사용기한' : (item.dateType || '기한')}</small>${formatDate(due, false)}<br><span class="deadline ${d.className}">${d.text}</span></div>`;
+        } else if (item.amount) details.push(`${Number(item.amount).toLocaleString('ko-KR')}원`);
+        if (item.note) details.push(item.note);
+        const thumbnail = item.photo ? `<button class="record-photo" data-photo="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 사진 보기"><img src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} 사진"></button>` : `<div class="record-icon">${icons[item.kind]}</div>`;
+        return `<article class="record-card">${thumbnail}<div class="record-copy"><div class="record-title">${escapeHtml(item.name)}</div><div class="record-detail">${details.map(x => `<span>${escapeHtml(x)}</span>`).join('<span>·</span>')}</div></div><div class="record-right">${deadline}<button class="edit-button" data-edit="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 수정" title="수정">✎</button><button class="delete-button" data-delete="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 삭제" title="삭제">×</button></div></article>`;
+      }
+      function updateNav() {
+        document.querySelectorAll('.nav-item').forEach(button => button.classList.toggle('active', button.dataset.view === currentView || (button.dataset.view === 'overview' && currentView === 'all')));
+      }
+      function switchView(view) {
+        currentView = view; document.getElementById('searchInput').value = '';
+        document.getElementById('pageTitle').textContent = ({ overview: '대시보드', expiry: '사용기한', medications: '복용 체크', laundry: '빨래', shopping: '장보기', clothes: '옷 구매', routines: '반복 관리', all: '모든 기록' }[view] || '살림 기록');
+        render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      function openModal(type = 'laundry', item = null) {
+        editingItem = item ? { ...item } : null;
+        currentType = editingItem?.kind || type;
+        document.getElementById('typeTabs').style.display = editingItem ? 'none' : 'grid';
+        updateTabs(); renderForm();
+        document.getElementById('modalBackdrop').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.querySelector('#formFields input')?.focus(), 30);
+      }
+      function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); document.body.style.overflow = ''; editingItem = null; }
+      function updateTabs() { document.querySelectorAll('.type-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.type === currentType)); }
+      function field(label, name, type = 'text', value = '', opts = {}) {
+        const full = opts.full ? ' full' : '';
+        if (type === 'select') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><select id="${name}" name="${name}" ${opts.attrs || ''}>${opts.options.map(o => `<option value="${escapeHtml(o.value)}" ${String(value) === String(o.value) ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}</select></div>`;
+        if (type === 'textarea') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><textarea id="${name}" name="${name}" placeholder="${escapeHtml(opts.placeholder || '')}">${escapeHtml(value)}</textarea></div>`;
+        return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><input id="${name}" name="${name}" type="${type}" value="${escapeHtml(value)}" placeholder="${escapeHtml(opts.placeholder || '')}" ${opts.required ? 'required' : ''} ${opts.min ? `min="${opts.min}"` : ''} ${opts.max ? `max="${opts.max}"` : ''} ${opts.attrs || ''}></div>`;
+      }
+      function renderForm() {
+        const fields = document.getElementById('formFields');
+        const preview = document.getElementById('calcPreview');
+        preview.hidden = currentType !== 'cosmetic';
+        const current = editingItem || {};
+        const commonName = field(currentType === 'food' || currentType === 'cosmetic' ? '제품명' : '기록 이름', 'name', 'text', current.name || '', { full: true, required: true, placeholder: ({ laundry: '예: 수건·흰옷 세탁', shopping: '예: 주말 장보기', clothes: '예: 네이비 가디건', food: '예: 우유 900ml', cosmetic: '예: 수분 세럼' })[currentType] });
+        if (currentType === 'laundry') fields.innerHTML = commonName + field('빨래한 날짜', 'date', 'date', current.date || today, { required: true }) + field('메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '세탁 코스 메모' });
+        if (currentType === 'shopping') fields.innerHTML = commonName + field('장 본 날짜', 'date', 'date', current.date || today, { required: true }) + field('구매한 것', 'note', 'textarea', current.note || '', { full: true, placeholder: '우유, 달걀, 채소' });
+        if (currentType === 'clothes') fields.innerHTML = commonName + field('구매한 날짜', 'date', 'date', current.date || today, { required: true }) + field('가격', 'amount', 'number', current.amount || '', { min: '0', hint: '선택' }) + field('메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '브랜드, 사이즈' });
+        if (currentType === 'food') fields.innerHTML = commonName + field('기한 종류', 'dateType', 'select', current.dateType || '소비기한', { options: [{ value: '소비기한', label: '소비기한' }, { value: '유통기한', label: '유통기한' }, { value: '권장 섭취일', label: '권장 섭취일' }] }) + field('기한 날짜', 'expiryDate', 'date', current.expiryDate || '', { required: true }) + field('등록일', 'date', 'date', current.date || today, { required: true }) + field('보관 메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '냉장·냉동 보관 위치' });
+        if (currentType === 'cosmetic') {
+          const categoryOptions = [{ value: 'mascara', label: '마스카라 (기본 3개월)' }, { value: 'eyeliner', label: '리퀴드 아이라이너 (기본 6개월)' }, { value: 'cream', label: '크림·밤 타입 (기본 6개월)' }, { value: 'skincare', label: '기초 스킨케어 (기본 12개월)' }, { value: 'sunscreen', label: '선크림 (기본 12개월)' }, { value: 'makeup', label: '메이크업 제품 (기본 12개월)' }, { value: 'other', label: '기타 (기본 6개월)' }];
+          const cosmeticType = current.cosmeticType || 'skincare';
+          fields.innerHTML = commonName + field('제품 종류', 'cosmeticType', 'select', cosmeticType, { full: true, options: categoryOptions }) + field('개봉한 날짜', 'openedAt', 'date', current.openedAt || today, { required: true }) + field('개봉 후 사용 개월', 'paoMonths', 'select', current.paoMonths || cosmeticDefaults[cosmeticType], { hint: '라벨의 6M·12M 표시 우선', options: [3,6,9,12,18,24].map(n => ({ value: n, label: `${n}개월` })) }) + field('미개봉 제품 표시기한', 'labelDate', 'date', current.labelDate || '', { hint: '선택' }) + field('메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '제품 라벨·보관 메모' });
+          updateCosmeticPreview();
+        }
+        fields.innerHTML += `<div class="field full"><label for="recordPhoto">사진 <span class="hint">선택 · 자동으로 용량을 줄여 저장</span></label><input id="recordPhoto" name="photo" type="file" accept="image/*"><div class="photo-preview" id="photoPreview">${current.photo ? `<img src="${escapeHtml(current.photo)}" alt="첨부 사진"><button type="button" class="secondary-button" data-remove-photo>사진 제거</button>` : ''}</div></div>`;
+        document.getElementById('modalTitle').textContent = `${labels[currentType]} ${editingItem ? '수정' : '기록 추가'}`;
+        document.querySelector('#recordForm button[type="submit"]').textContent = editingItem ? '수정 저장' : '기록 저장';
+      }
+      function updateCosmeticPreview() {
+        const opened = document.getElementById('openedAt')?.value || today;
+        const months = document.getElementById('paoMonths')?.value || 12;
+        const labelDate = document.getElementById('labelDate')?.value || '';
+        const openingDeadline = addMonths(opened, months);
+        const finalDate = labelDate && labelDate < openingDeadline ? labelDate : openingDeadline;
+        const source = labelDate && labelDate < openingDeadline ? '제품 표시기한이 더 빨라요.' : `개봉일로부터 ${months}개월 기준이에요.`;
+        const preview = document.getElementById('calcPreview');
+        preview.innerHTML = `<span>◷</span><span>권장 사용 종료일 <b>${formatDate(finalDate)}</b><br>${source} 제품 용기·포장에 적힌 표시를 우선 확인해 주세요.</span>`;
+      }
+      async function compressImage(file) {
+        if (!file) return '';
+        if (!file.type.startsWith('image/')) throw new Error('image');
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error('read'));
+          reader.onload = () => {
+            const image = new Image();
+            image.onerror = () => reject(new Error('image'));
+            image.onload = () => {
+              const scale = Math.min(1, 1000 / Math.max(image.width, image.height));
+              const canvas = document.createElement('canvas');
+              canvas.width = Math.round(image.width * scale); canvas.height = Math.round(image.height * scale);
+              canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+              resolve(canvas.toDataURL('image/jpeg', .78));
+            };
+            image.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+      async function saveForm(event) {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const original = editingItem;
+        const item = { ...(original || {}), id: original?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), kind: currentType, name: data.get('name').trim(), note: (data.get('note') || '').trim(), registeredAt: original?.registeredAt || today };
+        if (currentType === 'laundry' || currentType === 'shopping' || currentType === 'clothes') item.date = data.get('date');
+        if (currentType === 'clothes') item.amount = data.get('amount') || '';
+        if (currentType === 'food') { item.date = data.get('date'); item.expiryDate = data.get('expiryDate'); item.dateType = data.get('dateType'); }
+        if (currentType === 'cosmetic') { item.openedAt = data.get('openedAt'); item.paoMonths = Number(data.get('paoMonths')); item.cosmeticType = data.get('cosmeticType'); item.labelDate = data.get('labelDate') || ''; }
+        const form = event.currentTarget;
+        try {
+          const photoFile = data.get('photo');
+          if (photoFile?.size) item.photo = await compressImage(photoFile);
+          records = [item, ...records.filter(x => x.id !== item.id)]; save(); closeModal(); render(); showToast(original ? '수정 내용을 저장했어요.' : '기록을 저장했어요.');
+          form.reset();
+        } catch (error) {
+          showToast(error.message === 'image' ? '이미지 파일을 선택해 주세요.' : '저장하지 못했어요. 사진을 줄이거나 제거해 주세요.');
+        }
+      }
+      function deleteRecord(id) {
+        const item = records.find(x => x.id === id);
+        if (!item || !window.confirm(`“${item.name}” 기록을 삭제할까요?`)) return;
+        records = records.filter(x => x.id !== id); save(); render(); showToast('기록을 삭제했어요.');
+      }
+      function renderMedTimeInputs(times) {
+        document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="시간 삭제">×</button></div>`).join('');
+      }
+      function openMedicationModal(med = null) {
+        editingMedicineId = med?.id || null;
+        document.getElementById('medModalTitle').textContent = med ? '약 수정' : '약 추가';
+        document.getElementById('saveMedicationButton').textContent = med ? '수정 저장' : '약 저장';
+        document.getElementById('medName').value = med?.name || '';
+        document.getElementById('medDose').value = med?.dose || '';
+        document.getElementById('medStartDate').value = med?.startDate || '';
+        document.getElementById('medEndDate').value = med?.endDate || '';
+        renderMedTimeInputs(med?.times?.length ? med.times : ['08:00']);
+        document.getElementById('dayPicker').innerHTML = weekdays.map((day, index) => `<label class="day-option"><input type="checkbox" name="medDay" value="${index}" ${(med?.days || [0,1,2,3,4,5,6]).includes(index) ? 'checked' : ''}><span>${day}</span></label>`).join('');
+        document.getElementById('medModalBackdrop').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('medName').focus(), 30);
+      }
+      function closeMedicationModal() {
+        document.getElementById('medModalBackdrop').classList.remove('open');
+        document.body.style.overflow = '';
+        editingMedicineId = null;
+        document.getElementById('medForm').reset();
+      }
+      function saveMedication(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        const times = [...new Set(data.getAll('medTime').filter(Boolean))].sort();
+        const days = data.getAll('medDay').map(Number).sort((a,b) => a-b);
+        const startDate = data.get('startDate') || '';
+        const endDate = data.get('endDate') || '';
+        if (!times.length) { showToast('복용 시간을 한 개 이상 입력해 주세요.'); return; }
+        if (!days.length) { showToast('복용 요일을 선택해 주세요.'); return; }
+        if (startDate && endDate && endDate < startDate) { showToast('종료일은 시작일 이후로 설정해 주세요.'); return; }
+        const old = medicines.find(m => m.id === editingMedicineId);
+        const med = { id: old?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), name: String(data.get('name') || '').trim(), dose: String(data.get('dose') || '').trim(), times, days, startDate, endDate };
+        medicines = old ? medicines.map(m => m.id === old.id ? med : m) : [...medicines, med];
+        try { saveMedicines(); closeMedicationModal(); render(); showToast(old ? '약 정보를 수정했어요.' : '약을 추가했어요.'); checkNotifications(); }
+        catch { showToast('저장 공간이 부족합니다.'); }
+      }
+      function deleteMedicine(id) {
+        const med = medicines.find(m => m.id === id);
+        if (!med || !window.confirm(`“${med.name}” 약과 일정을 삭제할까요? 복용 기록도 함께 지워집니다.`)) return;
+        medicines = medicines.filter(m => m.id !== id);
+        for (const key of Object.keys(medicationChecks)) if (key.startsWith(`${id}|`)) delete medicationChecks[key];
+        try { saveMedicines(); saveChecks(); render(); showToast('약을 삭제했어요.'); }
+        catch { showToast('삭제 내용을 저장하지 못했어요.'); }
+      }
+      function showPhoto(id) {
+        const item = records.find(x => x.id === id);
+        if (!item?.photo) return;
+        document.getElementById('photoViewerImage').src = item.photo;
+        document.getElementById('photoViewer').classList.add('open');
+      }
+      function closePhoto() { document.getElementById('photoViewer').classList.remove('open'); document.getElementById('photoViewerImage').removeAttribute('src'); }
+      function exportData() {
+        const blob = new Blob([JSON.stringify({ app: '살림 기록', version: 3, exportedAt: new Date().toISOString(), records, medicines, medicationChecks, routines, shoppingList }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `살림기록-백업-${today}.json`; a.click(); URL.revokeObjectURL(url); showToast('백업 파일을 만들었어요.');
+      }
+      async function importData(file) {
+        try {
+          const parsed = JSON.parse(await file.text()); const incoming = Array.isArray(parsed) ? parsed : parsed.records;
+          const incomingMeds = Array.isArray(parsed?.medicines) ? parsed.medicines : [];
+          const incomingRoutines = Array.isArray(parsed?.routines) ? parsed.routines : [];
+          const incomingShopping = Array.isArray(parsed?.shoppingList) ? parsed.shoppingList : [];
+          if (!Array.isArray(incoming) || incoming.some(x => !x || !x.id || !x.kind || !x.name || !labels[x.kind])) throw new Error('invalid');
+          if (incomingMeds.some(x => !x || !x.id || !x.name || !Array.isArray(x.times))) throw new Error('invalid');
+          if (incomingRoutines.some(x => !x || !x.id || !x.name || !x.nextDate)) throw new Error('invalid');
+          if (incomingShopping.some(x => !x || !x.id || !x.name)) throw new Error('invalid');
+          const map = new Map(records.map(x => [x.id, x])); incoming.forEach(x => map.set(x.id, x));
+          const medMap = new Map(medicines.map(x => [x.id, x])); incomingMeds.forEach(x => medMap.set(x.id, x));
+          const routineMap = new Map(routines.map(x => [x.id, x])); incomingRoutines.forEach(x => routineMap.set(x.id, x));
+          const shoppingMap = new Map(shoppingList.map(x => [x.id, x])); incomingShopping.forEach(x => shoppingMap.set(x.id, x));
+          records = [...map.values()]; medicines = [...medMap.values()]; routines = [...routineMap.values()]; shoppingList = [...shoppingMap.values()];
+          if (parsed?.medicationChecks && typeof parsed.medicationChecks === 'object') medicationChecks = { ...medicationChecks, ...parsed.medicationChecks };
+          save(); saveMedicines(); saveChecks(); saveRoutines(); saveShoppingList(); render(); showToast(`${incoming.length}개 기록, ${incomingMeds.length}개 약, ${incomingRoutines.length}개 반복 일정, ${incomingShopping.length}개 장보기 항목을 가져왔어요.`);
+        } catch { showToast('가져올 수 없는 백업 파일이에요.'); }
+      }
+
+      document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', () => switchView(button.dataset.view)));
+      document.querySelectorAll('[data-open-view]').forEach(button => button.addEventListener('click', () => switchView(button.dataset.openView)));
+      document.querySelectorAll('[data-add]').forEach(button => button.addEventListener('click', () => openModal(button.dataset.add)));
+      document.getElementById('openAdd').addEventListener('click', () => {
+        if (currentView === 'medications') return openMedicationModal();
+        if (currentView === 'routines') { document.getElementById('routineName').focus(); return; }
+        openModal(currentView === 'laundry' || currentView === 'shopping' || currentView === 'clothes' || currentView === 'expiry' ? ({ expiry: 'food' }[currentView] || currentView) : 'laundry');
+      });
+      document.getElementById('listAdd').addEventListener('click', () => openModal(currentView === 'expiry' ? 'food' : (['laundry','shopping','clothes'].includes(currentView) ? currentView : 'laundry')));
+      document.getElementById('shoppingItemInput').addEventListener('keydown', event => {
+        if (event.key === 'Enter') { event.preventDefault(); addShoppingListItem(); }
+      });
+      document.getElementById('addShoppingItem').addEventListener('click', addShoppingListItem);
+      document.getElementById('shoppingItems').addEventListener('change', event => {
+        const input = event.target.closest('[data-shopping-toggle]');
+        if (!input) return;
+        const item = shoppingList.find(entry => entry.id === input.dataset.shoppingToggle);
+        if (!item) return;
+        item.done = input.checked; saveShoppingList(); renderShoppingList();
+      });
+      document.getElementById('shoppingItems').addEventListener('click', event => {
+        const button = event.target.closest('[data-shopping-remove]');
+        if (!button) return;
+        shoppingList = shoppingList.filter(item => item.id !== button.dataset.shoppingRemove);
+        saveShoppingList(); renderShoppingList();
+      });
+      document.getElementById('saveShoppingPurchase').addEventListener('click', saveCheckedShoppingItems);
+      document.getElementById('routineForm').addEventListener('submit', saveRoutine);
+      document.getElementById('routineList').addEventListener('click', event => {
+        const edit = event.target.closest('[data-routine-edit]');
+        const done = event.target.closest('[data-routine-done]');
+        const remove = event.target.closest('[data-routine-delete]');
+        if (edit) editRoutine(edit.dataset.routineEdit);
+        else if (done) completeRoutine(done.dataset.routineDone);
+        else if (remove) deleteRoutine(remove.dataset.routineDelete);
+      });
+      document.getElementById('exportCalendar').addEventListener('click', exportCalendar);
+      document.getElementById('closeModal').addEventListener('click', closeModal);
+      document.getElementById('cancelModal').addEventListener('click', closeModal);
+      document.getElementById('modalBackdrop').addEventListener('click', e => { if (e.target.id === 'modalBackdrop') closeModal(); });
+      document.getElementById('typeTabs').addEventListener('click', e => { const tab = e.target.closest('[data-type]'); if (tab) { currentType = tab.dataset.type; updateTabs(); renderForm(); } });
+      document.getElementById('recordForm').addEventListener('submit', saveForm);
+      document.getElementById('formFields').addEventListener('input', e => { if (['openedAt','paoMonths','labelDate','cosmeticType'].includes(e.target.name)) updateCosmeticPreview(); });
+      document.getElementById('formFields').addEventListener('change', e => {
+        if (e.target.name === 'cosmeticType') { const select = document.getElementById('paoMonths'); if (select) select.value = cosmeticDefaults[e.target.value] || 6; updateCosmeticPreview(); }
+        if (['openedAt','paoMonths','labelDate'].includes(e.target.name)) updateCosmeticPreview();
+        if (e.target.name === 'photo') {
+          const file = e.target.files?.[0];
+          const target = document.getElementById('photoPreview');
+          if (file) {
+            const url = URL.createObjectURL(file);
+            target.innerHTML = `<img src="${url}" alt="선택한 사진 미리보기"><button type="button" class="secondary-button" data-clear-photo>선택 취소</button>`;
+          }
+        }
+      });
+      document.getElementById('searchInput').addEventListener('input', renderList);
+      document.getElementById('sortSelect').addEventListener('change', renderList);
+      document.getElementById('recordList').addEventListener('click', e => {
+        const photo = e.target.closest('[data-photo]');
+        const edit = e.target.closest('[data-edit]');
+        const remove = e.target.closest('[data-delete]');
+        if (photo) showPhoto(photo.dataset.photo);
+        else if (edit) { const item = records.find(x => x.id === edit.dataset.edit); if (item) openModal(item.kind, item); }
+        else if (remove) deleteRecord(remove.dataset.delete);
+      });
+      document.getElementById('recordForm').addEventListener('click', e => {
+        if (e.target.closest('[data-remove-photo]')) {
+          if (editingItem) editingItem.photo = '';
+          const input = document.getElementById('recordPhoto'); if (input) input.value = '';
+          document.getElementById('photoPreview').textContent = '';
+        } else if (e.target.closest('[data-clear-photo]')) {
+          document.getElementById('recordPhoto').value = '';
+          const preview = document.getElementById('photoPreview');
+          preview.innerHTML = editingItem?.photo ? `<img src="${escapeHtml(editingItem.photo)}" alt="첨부 사진"><button type="button" class="secondary-button" data-remove-photo>사진 제거</button>` : '';
+        }
+      });
+      document.getElementById('notificationButton').addEventListener('click', toggleNotifications);
+      document.getElementById('addMedication').addEventListener('click', () => openMedicationModal());
+      document.getElementById('closeMedModal').addEventListener('click', closeMedicationModal);
+      document.getElementById('cancelMedModal').addEventListener('click', closeMedicationModal);
+      document.getElementById('medModalBackdrop').addEventListener('click', e => { if (e.target.id === 'medModalBackdrop') closeMedicationModal(); });
+      document.getElementById('medForm').addEventListener('submit', saveMedication);
+      document.getElementById('addMedTime').addEventListener('click', () => {
+        const times = [...document.querySelectorAll('input[name="medTime"]')].map(input => input.value).filter(Boolean);
+        const nextTime = ['20:00', '12:00', '18:00', '09:00'].find(time => !times.includes(time)) || '12:00';
+        times.push(nextTime); renderMedTimeInputs(times);
+      });
+      document.getElementById('medTimes').addEventListener('click', e => {
+        if (!e.target.closest('[data-remove-time]')) return;
+        const rows = [...document.querySelectorAll('.med-time-row')];
+        if (rows.length <= 1) { showToast('복용 시간은 한 개 이상 필요합니다.'); return; }
+        e.target.closest('.med-time-row').remove();
+      });
+      const doseClick = e => { const button = e.target.closest('[data-dose-id]'); if (button) toggleDose(button.dataset.doseId, button.dataset.doseTime); };
+      document.getElementById('dashboardDoseList').addEventListener('click', doseClick);
+      document.getElementById('medDoseList').addEventListener('click', doseClick);
+      document.getElementById('medList').addEventListener('click', e => {
+        const edit = e.target.closest('[data-edit-med]'); const remove = e.target.closest('[data-delete-med]');
+        if (edit) { const med = medicines.find(x => x.id === edit.dataset.editMed); if (med) openMedicationModal(med); }
+        else if (remove) deleteMedicine(remove.dataset.deleteMed);
+      });
+      document.getElementById('photoViewer').addEventListener('click', e => { if (e.target.id === 'photoViewer' || e.target.id === 'closePhotoViewer') closePhoto(); });
+      document.getElementById('closePhotoViewer').addEventListener('click', closePhoto);
+      document.getElementById('exportButton').addEventListener('click', exportData);
+      document.getElementById('backupInline').addEventListener('click', exportData);
+      document.getElementById('importButton').addEventListener('click', () => document.getElementById('importFile').click());
+      document.getElementById('importFile').addEventListener('change', e => { const file = e.target.files?.[0]; if (file) importData(file); e.target.value = ''; });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeMedicationModal(); closePhoto(); } });
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkNotifications(); renderMedications(); } });
+      setInterval(() => { checkNotifications(); renderMedications(); }, 60 * 1000);
+      render();
+      checkNotifications();
+    })();
+  </script>
+</body>
+</html>
