@@ -1248,6 +1248,8 @@
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         const original = editingItem;
+        // 공백만 입력하면 required 검사를 통과하므로, 이름 없는 기록이 저장되지 않게 막고 입력란으로 되돌림
+        if (!String(data.get('name') || '').trim()) { showToast('기록 이름을 입력해 주세요.'); document.getElementById('name')?.focus(); return; }
         const item = { ...(original || {}), id: original?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), kind: currentType, name: data.get('name').trim(), note: (data.get('note') || '').trim(), registeredAt: original?.registeredAt || today };
         if (currentType === 'laundry' || currentType === 'shopping' || currentType === 'clothes') item.date = data.get('date');
         if (currentType === 'clothes') item.amount = data.get('amount') || '';
