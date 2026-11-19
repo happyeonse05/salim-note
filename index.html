@@ -1139,8 +1139,15 @@
         const list = document.getElementById('recordList');
         if (!items.length) {
           const filtered = currentView === 'expiry' && expiryFilter !== 'all' && !q;
-          const emptyTitle = q ? '검색 결과 없음' : filtered ? '이 기간의 기록이 없어요' : '기록 없음';
-          const emptyBody = q ? '다른 검색어를 입력하세요.' : filtered ? '다른 기간 필터를 선택해 보세요.' : '새 기록 버튼으로 항목을 추가하세요.';
+          // 화면(탭)마다 빈 상태 문구를 다르게 보여줘 어떤 기록을 추가하면 되는지 바로 알 수 있게 함
+          const viewEmpty = {
+            expiry: ['사용기한 기록이 없어요', '새 기록 버튼으로 식품이나 화장품을 등록해 보세요.'],
+            laundry: ['빨래 기록이 없어요', '새 기록 버튼으로 세탁한 날짜를 추가하세요.'],
+            shopping: ['장보기 기록이 없어요', '위 장보기 목록에서 산 물건을 체크한 뒤 구매 기록에 담아 보세요.'],
+            clothes: ['옷 구매 기록이 없어요', '새 기록 버튼으로 구매 날짜와 가격을 추가하세요.']
+          }[currentView] || ['기록 없음', '새 기록 버튼으로 항목을 추가하세요.'];
+          const emptyTitle = q ? '검색 결과 없음' : filtered ? '이 기간의 기록이 없어요' : viewEmpty[0];
+          const emptyBody = q ? '다른 검색어를 입력하세요.' : filtered ? '다른 기간 필터를 선택해 보세요.' : viewEmpty[1];
           // 검색 결과가 없을 때는 한 번에 검색어를 지울 수 있는 버튼을 함께 보여줌
           const clearButton = q ? '<button class="secondary-button" type="button" data-clear-search>검색 지우기</button>' : '';
           list.innerHTML = `<div class="panel empty-state"><strong>${emptyTitle}</strong><span>${emptyBody}</span>${clearButton}</div>`;
