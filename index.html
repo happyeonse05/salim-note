@@ -951,7 +951,8 @@
         const name = String(data.get('name') || '').trim();
         const nextDate = String(data.get('nextDate') || '');
         const cadence = String(data.get('cadence') || 'P1M');
-        if (!name || !nextDate) return;
+        if (!name) { showToast('할 일을 입력해 주세요.'); document.getElementById('routineName').focus(); return; }
+        if (!nextDate) return;
         const old = routines.find(item => item.id === editingRoutineId);
         const id = old?.id || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
         const updated = { ...(old || {}), id, name, nextDate, cadence, createdAt: old?.createdAt || today, lastDone: old?.lastDone || '' };
