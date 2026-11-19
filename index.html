@@ -1367,6 +1367,7 @@
         const times = [...document.querySelectorAll('input[name="medTime"]')].map(input => input.value).filter(Boolean);
         const nextTime = ['20:00', '12:00', '18:00', '09:00'].find(time => !times.includes(time)) || '12:00';
         times.push(nextTime); renderMedTimeInputs(times);
+        document.querySelector('#medTimes .med-time-row:last-child input').focus();
       });
       document.getElementById('medTimes').addEventListener('click', e => {
         if (!e.target.closest('[data-remove-time]')) return;
