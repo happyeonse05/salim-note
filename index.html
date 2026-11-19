@@ -1125,7 +1125,6 @@
         if (!isList) return;
         const titleMap = { all: ['모든 기록', '전체 생활 기록'], expiry: ['사용기한', '식품 표시기한과 화장품 권장 사용기한'], laundry: ['빨래', '세탁 날짜와 메모'], shopping: ['장보기', '장보기 날짜와 구매 품목'], clothes: ['옷 구매', '구매 날짜와 가격'] };
         document.getElementById('listTitle').textContent = titleMap[currentView]?.[0] || '모든 기록';
-        document.getElementById('listCaption').textContent = titleMap[currentView]?.[1] || '';
         document.getElementById('expiryFilters').hidden = currentView !== 'expiry';
         document.querySelectorAll('[data-expiry-filter]').forEach(chip => {
           const on = chip.dataset.expiryFilter === expiryFilter;
@@ -1146,6 +1145,11 @@
         const q = document.getElementById('searchInput').value.trim().toLowerCase();
         let items = viewItems().filter(item => !q || [item.name, item.note, labels[item.kind]].filter(Boolean).join(' ').toLowerCase().includes(q));
         if (document.getElementById('sortSelect').value === 'oldest') items = items.reverse();
+        // 캡션에 현재 보이는 건수를 붙이고, 옷 구매 탭에서는 검색 결과의 합계도 함께 보여줌
+        const baseCaption = titleMap[currentView]?.[1] || '';
+        const countText = `${items.length}건`;
+        const spendText = currentView === 'clothes' ? ` · 합계 ${items.reduce((sum, x) => sum + (Number(x.amount) || 0), 0).toLocaleString('ko-KR')}원` : '';
+        document.getElementById('listCaption').textContent = baseCaption ? `${baseCaption} · ${countText}${spendText}` : countText;
         const list = document.getElementById('recordList');
         if (!items.length) {
           const filtered = currentView === 'expiry' && expiryFilter !== 'all' && !q;
