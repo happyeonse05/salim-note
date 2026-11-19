@@ -365,6 +365,7 @@
     .routine-form .field input, .routine-form .field select { min-height: 42px; }
     .routine-list-panel { margin-top: 14px; }
     .calendar-note { margin: 12px 2px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .list-more { margin: 2px 0 0; padding: 2px 2px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
     .shopping-list-panel { display: none; margin: 0 0 14px; }
     .shopping-list-panel.visible { display: block; }
     .shopping-count { padding: 5px 9px; border-radius: 99px; background: var(--green-pale); color: var(--green); font-size: 11px; font-weight: 700; }
@@ -1097,10 +1098,12 @@
         if (!alerts.length) {
           alertList.innerHTML = `<div class="empty-state"><strong>기한 임박 항목 없음</strong><span>식품·화장품을 등록하면 이곳에 표시됩니다.</span></div>`;
         } else {
+          // 대시보드에는 4개만 보여주므로, 나머지 개수를 알려 목록이 잘린 줄 모르는 일이 없게 함
+          const hiddenCount = alerts.length - 4;
           alertList.innerHTML = alerts.slice(0,4).map(item => {
             const due = deadlineLabel(item);
             return `<div class="alert-row ${due.className === 'urgent' || due.className === 'past' ? 'urgent' : ''}"><div class="alert-symbol">${icons[item.kind]}</div><div class="alert-meta"><div class="alert-name">${escapeHtml(item.name)}</div><div class="alert-date">${labels[item.kind]} · ${formatDate(item.deadline, false)}까지</div></div><span class="deadline ${due.className}">${due.text}</span></div>`;
-          }).join('');
+          }).join('') + (hiddenCount > 0 ? `<p class="list-more">외 ${hiddenCount}건이 더 있어요. 전체 보기에서 확인하세요.</p>` : '');
         }
         const activity = sortedRecords().slice(0,4);
         const activityList = document.getElementById('activityList');
