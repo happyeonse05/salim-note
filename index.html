@@ -1481,6 +1481,12 @@
         }
       });
       document.getElementById('searchInput').addEventListener('input', renderList);
+      document.getElementById('searchInput').addEventListener('keydown', e => {
+        // Esc clears a non-empty search query without leaving the search field.
+        if (e.key !== 'Escape' || !e.target.value) return;
+        e.preventDefault(); e.stopPropagation();
+        e.target.value = ''; renderList();
+      });
       document.getElementById('sortSelect').addEventListener('change', renderList);
       document.getElementById('expiryFilters').addEventListener('click', e => {
         const chip = e.target.closest('[data-expiry-filter]');
