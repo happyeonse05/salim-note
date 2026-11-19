@@ -1426,6 +1426,8 @@
         const item = shoppingList.find(entry => entry.id === input.dataset.shoppingToggle);
         if (!item) return;
         item.done = input.checked; saveShoppingList(); renderShoppingList();
+        // Re-rendering replaces the checkbox, so put keyboard focus back on the same item.
+        document.querySelector(`#shoppingItems [data-shopping-toggle="${CSS.escape(item.id)}"]`)?.focus();
       });
       document.getElementById('shoppingItems').addEventListener('click', event => {
         const button = event.target.closest('[data-shopping-remove]');
