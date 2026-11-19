@@ -1299,11 +1299,14 @@
         const days = data.getAll('medDay').map(Number).sort((a,b) => a-b);
         const startDate = data.get('startDate') || '';
         const endDate = data.get('endDate') || '';
+        const medName = String(data.get('name') || '').trim();
+        // 공백만 입력하면 required 검사를 통과하므로, 이름 없는 약이 저장되지 않게 막고 입력란으로 되돌림
+        if (!medName) { showToast('약 이름을 입력해 주세요.'); document.getElementById('medName').focus(); return; }
         if (!times.length) { showToast('복용 시간을 한 개 이상 입력해 주세요.'); return; }
         if (!days.length) { showToast('복용 요일을 선택해 주세요.'); return; }
         if (startDate && endDate && endDate < startDate) { showToast('종료일은 시작일 이후로 설정해 주세요.'); return; }
         const old = medicines.find(m => m.id === editingMedicineId);
-        const med = { id: old?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), name: String(data.get('name') || '').trim(), dose: String(data.get('dose') || '').trim(), times, days, startDate, endDate };
+        const med = { id: old?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), name: medName, dose: String(data.get('dose') || '').trim(), times, days, startDate, endDate };
         medicines = old ? medicines.map(m => m.id === old.id ? med : m) : [...medicines, med];
         try { saveMedicines(); closeMedicationModal(); render(); showToast(old ? '약 정보를 수정했어요.' : '약을 추가했어요.'); checkNotifications(); }
         catch { showToast('저장 공간이 부족합니다.'); }
