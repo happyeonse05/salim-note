@@ -1121,7 +1121,11 @@
         document.getElementById('listTitle').textContent = titleMap[currentView]?.[0] || '모든 기록';
         document.getElementById('listCaption').textContent = titleMap[currentView]?.[1] || '';
         document.getElementById('expiryFilters').hidden = currentView !== 'expiry';
-        document.querySelectorAll('[data-expiry-filter]').forEach(chip => chip.classList.toggle('active', chip.dataset.expiryFilter === expiryFilter));
+        document.querySelectorAll('[data-expiry-filter]').forEach(chip => {
+          const on = chip.dataset.expiryFilter === expiryFilter;
+          chip.classList.toggle('active', on);
+          chip.setAttribute('aria-pressed', String(on));
+        });
         if (currentView === 'expiry') {
           // 칩에 각 구간 개수를 함께 표시해 필터를 누르기 전에 규모를 알 수 있게 함
           const expiryRecords = records.filter(x => x.kind === 'food' || x.kind === 'cosmetic');
@@ -1170,7 +1174,12 @@
         return `<article class="record-card">${thumbnail}<div class="record-copy"><div class="record-title">${escapeHtml(item.name)}</div><div class="record-detail">${details.map(x => `<span>${escapeHtml(x)}</span>`).join('<span>·</span>')}</div></div><div class="record-right">${deadline}<button class="edit-button" data-edit="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 수정" title="수정">✎</button><button class="delete-button" data-delete="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 삭제" title="삭제">×</button></div></article>`;
       }
       function updateNav() {
-        document.querySelectorAll('.nav-item').forEach(button => button.classList.toggle('active', button.dataset.view === currentView || (button.dataset.view === 'overview' && currentView === 'all')));
+        document.querySelectorAll('.nav-item').forEach(button => {
+          const active = button.dataset.view === currentView || (button.dataset.view === 'overview' && currentView === 'all');
+          button.classList.toggle('active', active);
+          // 보조기술이 현재 화면을 알 수 있도록 aria-current 제공
+          if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+        });
       }
       function switchView(view) {
         currentView = view; document.getElementById('searchInput').value = '';
@@ -1200,7 +1209,14 @@
         setTimeout(() => document.querySelector('#formFields input')?.focus(), 30);
       }
       function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); document.body.style.overflow = ''; editingItem = null; restoreFocus(); }
-      function updateTabs() { document.querySelectorAll('.type-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.type === currentType)); }
+      function updateTabs() {
+        document.querySelectorAll('.type-tab').forEach(tab => {
+          const active = tab.dataset.type === currentType;
+          tab.classList.toggle('active', active);
+          // 선택된 기록 종류를 보조기술에도 알려줌
+          tab.setAttribute('aria-pressed', String(active));
+        });
+      }
       function field(label, name, type = 'text', value = '', opts = {}) {
         const full = opts.full ? ' full' : '';
         if (type === 'select') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><select id="${name}" name="${name}" ${opts.attrs || ''}>${opts.options.map(o => `<option value="${escapeHtml(o.value)}" ${String(value) === String(o.value) ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}</select></div>`;
