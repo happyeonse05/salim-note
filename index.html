@@ -1562,7 +1562,11 @@
         if (!e.target.closest('[data-remove-time]')) return;
         const rows = [...document.querySelectorAll('.med-time-row')];
         if (rows.length <= 1) { showToast('복용 시간은 한 개 이상 필요합니다.'); return; }
-        e.target.closest('.med-time-row').remove();
+        const index = rows.indexOf(e.target.closest('.med-time-row'));
+        rows[index].remove();
+        // 행을 지우면 키보드 포커스가 사라지므로, 같은 자리의 다음(또는 이전) 시간 입력란으로 옮김
+        const remaining = document.querySelectorAll('#medTimes input[name="medTime"]');
+        (remaining[index] || remaining[index - 1] || document.getElementById('addMedTime')).focus();
       });
       const doseClick = e => {
         const button = e.target.closest('[data-dose-id]');
