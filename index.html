@@ -778,6 +778,9 @@
       }
       function currentMinutes() { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
       function renderDoseRows(container, compact = false) {
+        // 1분마다 다시 그려지므로, 키보드로 포커스한 복용 버튼은 같은 항목의 버튼으로 되돌려 둠
+        const active = document.activeElement;
+        const focusedDose = container.contains(active) && active.dataset.doseId ? `${active.dataset.doseId}|${active.dataset.doseTime}` : null;
         const doses = todayDoses();
         if (!doses.length) {
           container.innerHTML = `<div class="empty-state"><strong>오늘 등록된 복용 일정이 없습니다</strong><span>약 관리에서 약과 시간을 추가하세요.</span></div>`;
@@ -789,6 +792,10 @@
           const state = done ? '완료' : late ? '미체크' : '예정';
           return `<div class="med-dose-row"><div class="med-dose-time">${escapeHtml(time)}</div><div class="med-dose-copy"><div class="med-dose-name">${escapeHtml(med.name)}</div><div class="med-dose-meta">${escapeHtml(med.dose || '복용량 미입력')}${late ? ' · 예정 시간 지남' : ''}</div></div><span class="dose-status ${done ? 'done' : late ? 'late' : ''}">${state}</span><button class="dose-button ${done ? 'done' : ''}" data-dose-id="${escapeHtml(med.id)}" data-dose-time="${escapeHtml(time)}" aria-label="${escapeHtml(`${med.name} ${time} ${done ? '체크 취소' : '복용 완료'}`)}">${done ? '체크 취소' : '복용 완료'}</button></div>`;
         }).join('');
+        if (focusedDose) {
+          const restore = [...container.querySelectorAll('[data-dose-id]')].find(button => `${button.dataset.doseId}|${button.dataset.doseTime}` === focusedDose);
+          restore?.focus({ preventScroll: true });
+        }
       }
       function renderMedicineList() {
         const target = document.getElementById('medList');
