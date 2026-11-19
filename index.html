@@ -617,7 +617,7 @@
       </form>
     </div>
   </div>
-  <div class="photo-viewer" id="photoViewer"><button type="button" id="closePhotoViewer" aria-label="사진 닫기">×</button><img id="photoViewerImage" alt="첨부 사진 크게 보기"></div>
+  <div class="photo-viewer" id="photoViewer" role="dialog" aria-modal="true" aria-label="첨부 사진 보기"><button type="button" id="closePhotoViewer" aria-label="사진 닫기">×</button><img id="photoViewerImage" alt="첨부 사진 크게 보기"></div>
   <input type="file" id="importFile" accept="application/json,.json">
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -1382,9 +1382,20 @@
         const item = records.find(x => x.id === id);
         if (!item?.photo) return;
         document.getElementById('photoViewerImage').src = item.photo;
+        photoOpener = document.activeElement;
         document.getElementById('photoViewer').classList.add('open');
+        document.getElementById('closePhotoViewer').focus();
       }
-      function closePhoto() { document.getElementById('photoViewer').classList.remove('open'); document.getElementById('photoViewerImage').removeAttribute('src'); }
+      let photoOpener = null;
+      function closePhoto() {
+        const viewer = document.getElementById('photoViewer');
+        if (!viewer.classList.contains('open')) return;
+        viewer.classList.remove('open');
+        document.getElementById('photoViewerImage').removeAttribute('src');
+        // 사진을 연 버튼으로 포커스를 돌려줘서 키보드 사용자가 위치를 잃지 않게 함
+        if (photoOpener && photoOpener.isConnected) photoOpener.focus();
+        photoOpener = null;
+      }
       function maybeRemindBackup() {
         // 기록이 있는데 30일 넘게 백업이 없으면 알림. 같은 알림은 7일에 한 번만 띄움
         if (!records.length) return;
