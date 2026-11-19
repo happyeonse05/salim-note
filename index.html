@@ -1342,8 +1342,12 @@
       document.getElementById('shoppingItems').addEventListener('click', event => {
         const button = event.target.closest('[data-shopping-remove]');
         if (!button) return;
+        const keepFocus = document.activeElement === button;
+        const buttons = [...document.querySelectorAll('[data-shopping-remove]')];
+        const index = buttons.indexOf(button);
         shoppingList = shoppingList.filter(item => item.id !== button.dataset.shoppingRemove);
         saveShoppingList(); renderShoppingList();
+        if (keepFocus) (document.querySelectorAll('[data-shopping-remove]')[Math.min(index, shoppingList.length - 1)] || document.getElementById('shoppingItemInput')).focus();
       });
       document.getElementById('saveShoppingPurchase').addEventListener('click', saveCheckedShoppingItems);
       document.getElementById('routineForm').addEventListener('submit', saveRoutine);
