@@ -1074,7 +1074,12 @@
         return `<article class="record-card">${thumbnail}<div class="record-copy"><div class="record-title">${escapeHtml(item.name)}</div><div class="record-detail">${details.map(x => `<span>${escapeHtml(x)}</span>`).join('<span>·</span>')}</div></div><div class="record-right">${deadline}<button class="edit-button" data-edit="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 수정" title="수정">✎</button><button class="delete-button" data-delete="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 삭제" title="삭제">×</button></div></article>`;
       }
       function updateNav() {
-        document.querySelectorAll('.nav-item').forEach(button => button.classList.toggle('active', button.dataset.view === currentView || (button.dataset.view === 'overview' && currentView === 'all')));
+        document.querySelectorAll('.nav-item').forEach(button => {
+          const active = button.dataset.view === currentView || (button.dataset.view === 'overview' && currentView === 'all');
+          button.classList.toggle('active', active);
+          if (active) button.setAttribute('aria-current', 'page');
+          else button.removeAttribute('aria-current');
+        });
       }
       function switchView(view) {
         currentView = view; document.getElementById('searchInput').value = '';
