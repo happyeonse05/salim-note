@@ -1351,13 +1351,26 @@
         event.preventDefault();
         const form = event.currentTarget;
         const data = new FormData(form);
-        const times = [...new Set(data.getAll('medTime').filter(Boolean))].sort();
+        const rawTimes = data.getAll('medTime').filter(Boolean);
+        const times = [...new Set(rawTimes)].sort();
         const days = data.getAll('medDay').map(Number).sort((a,b) => a-b);
         const startDate = data.get('startDate') || '';
         const endDate = data.get('endDate') || '';
         const medName = String(data.get('name') || '').trim();
         // 공백만 입력하면 required 검사를 통과하므로, 이름 없는 약이 저장되지 않게 막고 입력란으로 되돌림
         if (!medName) { showToast('약 이름을 입력해 주세요.'); document.getElementById('medName').focus(); return; }
+        if (times.length !== rawTimes.length) {
+          // 같은 시간이 두 번 있으면 조용히 하나만 남기지 않고, 두 번째 입력란으로 포커스를 옮겨 바꾸도록 안내
+          const seen = new Set();
+          const duplicate = [...document.querySelectorAll('input[name="medTime"]')].find(input => {
+            if (!input.value) return false;
+            if (seen.has(input.value)) return true;
+            seen.add(input.value); return false;
+          });
+          showToast('같은 복용 시간이 두 번 입력됐어요. 시간을 바꿔 주세요.');
+          duplicate?.focus();
+          return;
+        }
         if (!times.length) { showToast('복용 시간을 한 개 이상 입력해 주세요.'); return; }
         if (!days.length) { showToast('복용 요일을 선택해 주세요.'); return; }
         if (startDate && endDate && endDate < startDate) { showToast('종료일은 시작일 이후로 설정해 주세요.'); return; }
