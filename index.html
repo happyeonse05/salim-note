@@ -930,6 +930,8 @@
         const input = document.getElementById('shoppingItemInput');
         const name = input.value.trim();
         if (!name) { showToast('품목 이름을 입력해 주세요.'); input.focus(); return; }
+        const duplicate = shoppingList.some(item => !item.done && item.name.trim().toLowerCase() === name.toLowerCase());
+        if (duplicate) { showToast(`“${name}”은(는) 이미 살 것 목록에 있어요.`); input.select(); return; }
         const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         shoppingList.unshift({ id, name, done: false, createdAt: today });
         saveShoppingList(); input.value = ''; renderShoppingList(); input.focus();
