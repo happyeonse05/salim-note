@@ -1233,7 +1233,7 @@
         records = records.filter(x => x.id !== id); save(); render(); showToast('기록을 삭제했어요.');
       }
       function renderMedTimeInputs(times) {
-        document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="시간 삭제">×</button></div>`).join('');
+        document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="복용 시간 ${index + 1} 삭제">×</button></div>`).join('');
       }
       function openMedicationModal(med = null) {
         medicationReturnFocus = document.activeElement;
@@ -1418,7 +1418,10 @@
         const row = e.target.closest('.med-time-row');
         const nextInput = (row.nextElementSibling || row.previousElementSibling)?.querySelector('input');
         row.remove();
-        document.querySelectorAll('#medTimes input[name="medTime"]').forEach((input, index) => input.setAttribute('aria-label', `복용 시간 ${index + 1}`));
+        document.querySelectorAll('#medTimes .med-time-row').forEach((row, index) => {
+          row.querySelector('input').setAttribute('aria-label', `복용 시간 ${index + 1}`);
+          row.querySelector('[data-remove-time]').setAttribute('aria-label', `복용 시간 ${index + 1} 삭제`);
+        });
         nextInput?.focus();
       });
       const doseClick = e => { const button = e.target.closest('[data-dose-id]'); if (button) toggleDose(button.dataset.doseId, button.dataset.doseTime); };
