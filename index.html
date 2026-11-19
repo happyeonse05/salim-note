@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 28229)
+Total output lines: 1411
+
 <!doctype html>
 <html lang="ko">
 <head>
@@ -611,204 +614,7 @@
           <div class="field"><label for="medStartDate">시작일 <span class="hint">선택</span></label><input id="medStartDate" name="startDate" type="date"></div>
           <div class="field"><label for="medEndDate">종료일 <span class="hint">선택</span></label><input id="medEndDate" name="endDate" type="date"></div>
         </div><p class="med-disclaimer">알림은 이 앱이 열려 있고 브라우저 알림을 허용한 동안 전송됩니다. 앱을 닫은 시간의 미복용 일정은 다음 방문 시 표시됩니다.</p></div>
-        <div class="form-footer"><button type="button" class="secondary-button" id="cancelMedModal">취소</button><button type="submit" class="primary-button" id="saveMedicationButton">약 저장</button></div>
-      </form>
-    </div>
-  </div>
-  <div class="photo-viewer" id="photoViewer"><button type="button" id="closePhotoViewer" aria-label="사진 닫기">×</button><img id="photoViewerImage" alt="첨부 사진 크게 보기"></div>
-  <input type="file" id="importFile" accept="application/json,.json">
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script>
-    (() => {
-      const KEY = 'salimnote-records-v1';
-      const MEDS_KEY = 'salimnote-medicines-v1';
-      const CHECKS_KEY = 'salimnote-med-checks-v1';
-      const NOTIFIED_KEY = 'salimnote-notified-v1';
-      const NOTIFICATION_ENABLED_KEY = 'salimnote-notifications-enabled-v1';
-      const ROUTINES_KEY = 'salimnote-routines-v1';
-      const SHOPPING_LIST_KEY = 'salimnote-shopping-list-v1';
-      const icons = { laundry: '◌', shopping: '⌑', clothes: '♧', food: '◉', cosmetic: '✿' };
-      const labels = { laundry: '빨래', shopping: '장보기', clothes: '옷 구매', food: '식품', cosmetic: '화장품' };
-      const cosmeticDefaults = { mascara: 3, eyeliner: 6, skincare: 12, cream: 6, sunscreen: 12, makeup: 12, other: 6 };
-      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-      let today = localDateString(new Date());
-      let records = loadRecords();
-      let medicines = loadJson(MEDS_KEY, []);
-      let medicationChecks = loadJson(CHECKS_KEY, {});
-      let notified = loadJson(NOTIFIED_KEY, {});
-      let routines = loadJson(ROUTINES_KEY, []);
-      let shoppingList = loadJson(SHOPPING_LIST_KEY, []);
-      if (!Array.isArray(routines)) routines = [];
-      if (!Array.isArray(shoppingList)) shoppingList = [];
-      let notificationsEnabled = localStorage.getItem(NOTIFICATION_ENABLED_KEY) === 'true';
-      let currentView = 'overview';
-      let currentType = 'laundry';
-      let editingItem = null;
-      let editingMedicineId = null;
-      let recordReturnFocus = null;
-      let medicationReturnFocus = null;
-      let editingRoutineId = null;
-      let toastTimer;
-
-      function localDateString(date) {
-        const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-        return d.toISOString().slice(0, 10);
-      }
-      function dateObject(value) { return value ? new Date(value + 'T12:00:00') : null; }
-      function addDays(dateValue, days) {
-        const d = dateObject(dateValue);
-        if (!d) return '';
-        d.setDate(d.getDate() + Number(days || 0));
-        return localDateString(d);
-      }
-      function formatDate(value, withYear = true) {
-        const d = dateObject(value);
-        if (!d || Number.isNaN(d.getTime())) return '날짜 없음';
-        return new Intl.DateTimeFormat('ko-KR', { year: withYear ? 'numeric' : undefined, month: 'long', day: 'numeric' }).format(d);
-      }
-      function daysUntil(value) {
-        const target = dateObject(value); const base = dateObject(today);
-        if (!target || !base) return Infinity;
-        return Math.round((target - base) / 86400000);
-      }
-      function addMonths(dateValue, months) {
-        const d = dateObject(dateValue);
-        if (!d) return '';
-        const day = d.getDate();
-        d.setDate(1); d.setMonth(d.getMonth() + Number(months || 0));
-        const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-        d.setDate(Math.min(day, lastDay));
-        return localDateString(d);
-      }
-      function cadenceLabel(cadence) {
-        return ({ P7D: '매주', P14D: '2주마다', P1M: '매월', P3M: '3개월마다', P6M: '6개월마다', P1Y: '매년' })[cadence] || '매월';
-      }
-      function advanceRoutineDate(dateValue, cadence) {
-        const match = /^P(\d+)([DMY])$/.exec(cadence || 'P1M');
-        if (!match) return addMonths(dateValue, 1);
-        const amount = Number(match[1]);
-        if (match[2] === 'D') return addDays(dateValue, amount);
-        return addMonths(dateValue, amount * (match[2] === 'Y' ? 12 : 1));
-      }
-      function safeDeadline(item) {
-        if (item.kind === 'food') return item.expiryDate || '';
-        if (item.kind === 'cosmetic') {
-          const opened = addMonths(item.openedAt, item.paoMonths);
-          if (item.labelDate && opened) return item.labelDate < opened ? item.labelDate : opened;
-          return item.labelDate || opened;
-        }
-        return '';
-      }
-      function escapeHtml(value) {
-        return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-      }
-      function loadRecords() {
-        try { const value = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(value) ? value : []; }
-        catch { return []; }
-      }
-      function loadJson(key, fallback) {
-        try { const value = JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); return value ?? fallback; }
-        catch { return fallback; }
-      }
-      function save() { localStorage.setItem(KEY, JSON.stringify(records)); }
-      function saveMedicines() { localStorage.setItem(MEDS_KEY, JSON.stringify(medicines)); }
-      function saveChecks() { localStorage.setItem(CHECKS_KEY, JSON.stringify(medicationChecks)); }
-      function saveNotified() { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notified)); }
-      function saveRoutines() { localStorage.setItem(ROUTINES_KEY, JSON.stringify(routines)); }
-      function saveShoppingList() { localStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(shoppingList)); }
-      function showToast(message) {
-        const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show');
-        clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2300);
-      }
-      function activityDate(item) { return item.kind === 'cosmetic' ? (item.openedAt || item.registeredAt || today) : (item.date || item.registeredAt || today); }
-      function sortedRecords(items = records) { return [...items].sort((a,b) => (activityDate(b) || '').localeCompare(activityDate(a) || '')); }
-      function expiringRecords() {
-        return records.filter(x => x.kind === 'food' || x.kind === 'cosmetic').map(x => ({ ...x, deadline: safeDeadline(x) }))
-          .filter(x => x.deadline && daysUntil(x.deadline) <= 60).sort((a,b) => a.deadline.localeCompare(b.deadline));
-      }
-      function deadlineLabel(item) {
-        const days = daysUntil(item.deadline);
-        if (days < 0) return { text: `${Math.abs(days)}일 지남`, className: 'past' };
-        if (days === 0) return { text: '오늘까지', className: 'urgent' };
-        return { text: `D-${days}`, className: days <= 7 ? 'urgent' : '' };
-      }
-      function doseKey(medId, date, time) { return `${medId}|${date}|${time}`; }
-      function scheduledToday(med, date = today) {
-        const day = dateObject(date)?.getDay();
-        if (day === undefined || !(med.days || [0,1,2,3,4,5,6]).includes(day)) return false;
-        if (med.startDate && date < med.startDate) return false;
-        if (med.endDate && date > med.endDate) return false;
-        return true;
-      }
-      function timeMinutes(value) {
-        const [h, m] = String(value || '00:00').split(':').map(Number);
-        return h * 60 + m;
-      }
-      function todayDoses() {
-        return medicines.filter(med => scheduledToday(med)).flatMap(med => (med.times || []).map(time => ({
-          med, time, key: doseKey(med.id, today, time), done: Boolean(medicationChecks[doseKey(med.id, today, time)])
-        }))).sort((a, b) => a.time.localeCompare(b.time) || a.med.name.localeCompare(b.med.name, 'ko'));
-      }
-      function currentMinutes() { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
-      function renderDoseRows(container, compact = false) {
-        const doses = todayDoses();
-        if (!doses.length) {
-          container.innerHTML = compact
-            ? `<div class="empty-state dose-empty"><div class="dose-empty-copy"><strong>오늘 복용 일정이 없어요</strong><span>약 관리에서 약과 시간을 추가하면 이곳에서 확인할 수 있어요.</span></div><img src="assets/salim-medicine-optimized.png" alt="" aria-hidden="true"></div>`
-            : `<div class="empty-state"><strong>오늘 등록된 복용 일정이 없습니다</strong><span>약 관리에서 약과 시간을 추가하세요.</span></div>`;
-          return;
-        }
-        const now = currentMinutes();
-        container.innerHTML = doses.map(({ med, time, key, done }) => {
-          const late = !done && now >= timeMinutes(time);
-          const state = done ? '완료' : late ? '미체크' : '예정';
-          return `<div class="med-dose-row"><div class="med-dose-time">${escapeHtml(time)}</div><div class="med-dose-copy"><div class="med-dose-name">${escapeHtml(med.name)}</div><div class="med-dose-meta">${escapeHtml(med.dose || '복용량 미입력')}${late ? ' · 예정 시간 지남' : ''}</div></div><span class="dose-status ${done ? 'done' : late ? 'late' : ''}">${state}</span><button class="dose-button ${done ? 'done' : ''}" data-dose-id="${escapeHtml(med.id)}" data-dose-time="${escapeHtml(time)}">${done ? '체크 취소' : '복용 완료'}</button></div>`;
-        }).join('');
-      }
-      function renderMedicineList() {
-        const target = document.getElementById('medList');
-        if (!medicines.length) {
-          target.innerHTML = `<div class="empty-state"><strong>등록된 약이 없습니다</strong><span>복용할 약을 추가해 일정을 설정하세요.</span></div>`;
-          return;
-        }
-        target.innerHTML = medicines.map(med => {
-          const times = (med.times || []).slice().sort().join(' · ');
-          const days = (med.days || [0,1,2,3,4,5,6]).map(d => weekdays[d]).join(' ');
-          const range = [med.startDate ? `${formatDate(med.startDate, false)} 시작` : '', med.endDate ? `${formatDate(med.endDate, false)} 종료` : ''].filter(Boolean).join(' · ');
-          return `<article class="med-card"><div class="record-icon">＋</div><div class="med-card-main"><div class="med-card-name">${escapeHtml(med.name)}</div><div class="med-card-info">${escapeHtml(med.dose || '복용량 미입력')} · ${escapeHtml(times)}<br>${escapeHtml(days)}${range ? ` · ${escapeHtml(range)}` : ''}</div></div><div class="med-card-actions"><button class="edit-button" data-edit-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 수정" title="수정">✎</button><button class="delete-button" data-delete-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 삭제" title="삭제">×</button></div></article>`;
-        }).join('');
-      }
-      function renderMedications() {
-        renderDoseRows(document.getElementById('dashboardDoseList'), true);
-        renderDoseRows(document.getElementById('medDoseList'));
-        renderMedicineList();
-        const doses = todayDoses();
-        const missed = doses.filter(d => !d.done && currentMinutes() >= timeMinutes(d.time)).length;
-        document.getElementById('medTodayCaption').textContent = `${doses.filter(d => d.done).length}/${doses.length}회 완료${missed ? ` · 미체크 ${missed}회` : ''}`;
-        document.getElementById('navMedCount').textContent = missed ? missed : '';
-        const summary = document.getElementById('dashboardSummaryText');
-        if (summary) summary.textContent = `복용 ${doses.filter(d => d.done).length}/${doses.length}회 완료 · 오늘 할 일 ${routines.filter(item => daysUntil(item.nextDate) <= 0).length}개 · 사용기한 임박 ${expiringRecords().length}개`;
-      }
-      function renderNotificationButton() {
-        const button = document.getElementById('notificationButton');
-        button.classList.toggle('enabled', notificationsEnabled);
-        button.title = '복용 예정 시간, 사용기한, 반복 일정 알림';
-        button.innerHTML = `<span>◷</span> ${notificationsEnabled ? '알림 끄기' : '알림 켜기'}`;
-        document.getElementById('sideNotificationStatus').textContent = notificationsEnabled ? '브라우저 알림 켜짐' : '브라우저 알림 꺼짐';
-      }
-      async function toggleNotifications() {
-        if (notificationsEnabled) {
-          notificationsEnabled = false;
-          localStorage.setItem(NOTIFICATION_ENABLED_KEY, 'false');
-          renderNotificationButton(); showToast('브라우저 알림을 껐어요.'); return;
-        }
-        if (!('Notification' in window)) { showToast('이 브라우저에서는 알림을 지원하지 않아요.'); return; }
-        try {
-          const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-          if (permission !== 'granted') { showToast('브라우저 설정에서 알림을 허용해 주세요.'); return; }
-          notificationsEnabled = true;
-          localStorage.setItem(NOTIFICATION_ENABLED_KEY, 'true');
+        <div class="form-footer"><button type="button" class="secondary-button" id="cancelMedModal">취소</button><button type="submit" class="primary-button" id="saveMedicationButton">약 저장</butt…3229 tokens truncated…, 'true');
           renderNotificationButton(); showToast('복용·사용기한·반복 일정 알림을 켰어요.'); checkNotifications();
         } catch { showToast('알림 권한을 설정하지 못했어요.'); }
       }
@@ -1105,7 +911,13 @@
         if (recordReturnFocus?.isConnected) recordReturnFocus.focus({ preventScroll: true });
         recordReturnFocus = null;
       }
-      function updateTabs() { document.querySelectorAll('.type-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.type === currentType)); }
+      function updateTabs() {
+        document.querySelectorAll('.type-tab').forEach(tab => {
+          const selected = tab.dataset.type === currentType;
+          tab.classList.toggle('active', selected);
+          tab.setAttribute('aria-pressed', String(selected));
+        });
+      }
       function field(label, name, type = 'text', value = '', opts = {}) {
         const full = opts.full ? ' full' : '';
         if (type === 'select') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><select id="${name}" name="${name}" ${opts.attrs || ''}>${opts.options.map(o => `<option value="${escapeHtml(o.value)}" ${String(value) === String(o.value) ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}</select></div>`;
