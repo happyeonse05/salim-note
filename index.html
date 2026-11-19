@@ -962,7 +962,12 @@
           document.getElementById('routineName').focus();
           return;
         }
-        if (!nextDate) return;
+        if (!nextDate) {
+          // 날짜가 비어 있으면 저장하지 않고 안내한 뒤 날짜 입력란으로 포커스를 옮김
+          showToast('다음 날짜를 선택해 주세요.');
+          document.getElementById('routineNextDate').focus();
+          return;
+        }
         const old = routines.find(item => item.id === editingRoutineId);
         const id = old?.id || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
         const updated = { ...(old || {}), id, name, nextDate, cadence, createdAt: old?.createdAt || today, lastDone: old?.lastDone || '' };
