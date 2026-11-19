@@ -1078,6 +1078,7 @@
       }
       function switchView(view) {
         currentView = view; document.getElementById('searchInput').value = '';
+        document.getElementById('openAdd').innerHTML = '<span class="plus">＋</span> ' + ({ medications: '약 추가', routines: '일정 추가' }[view] || '기록 추가');
         document.getElementById('pageTitle').textContent = ({ overview: '대시보드', expiry: '사용기한', medications: '복용 체크', laundry: '빨래', shopping: '장보기', clothes: '옷 구매', routines: '반복 관리', all: '모든 기록' }[view] || '살림 기록');
         render(); window.scrollTo({ top: 0, behavior: 'smooth' });
       }
