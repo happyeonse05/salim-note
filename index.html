@@ -943,6 +943,8 @@
         records.unshift({ id, kind: 'shopping', name: `장보기 ${checked.length}개`, note: checked.map(item => item.name).join(', '), date: today, registeredAt: today });
         shoppingList = shoppingList.filter(item => !item.done);
         save(); saveShoppingList(); render(); showToast(`${checked.length}개 품목을 장보기 기록에 저장했어요.`);
+        // The purchase button was focused and is now disabled, which drops focus; move it to the next item or the input.
+        (document.querySelector('#shoppingItems [data-shopping-toggle]') || document.getElementById('shoppingItemInput')).focus();
       }
       function resetRoutineForm() {
         // 수정 모드를 빠져나와 입력란을 비우고 등록 상태로 되돌림
