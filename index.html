@@ -1266,7 +1266,7 @@
         const startDate = data.get('startDate') || '';
         const endDate = data.get('endDate') || '';
         if (!times.length) { showToast('복용 시간을 한 개 이상 입력해 주세요.'); return; }
-        if (!days.length) { showToast('복용 요일을 선택해 주세요.'); return; }
+        if (!days.length) { showToast('복용 요일을 선택해 주세요.'); document.querySelector('#dayPicker input[name="medDay"]').focus(); return; }
         if (startDate && endDate && endDate < startDate) { showToast('종료일은 시작일 이후로 설정해 주세요.'); document.getElementById('medEndDate').focus(); return; }
         const old = medicines.find(m => m.id === editingMedicineId);
         const med = { id: old?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), name: String(data.get('name') || '').trim(), dose: String(data.get('dose') || '').trim(), times, days, startDate, endDate };
