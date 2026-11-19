@@ -628,6 +628,8 @@
       const NOTIFICATION_ENABLED_KEY = 'salimnote-notifications-enabled-v1';
       const ROUTINES_KEY = 'salimnote-routines-v1';
       const SHOPPING_LIST_KEY = 'salimnote-shopping-list-v1';
+      const LAST_BACKUP_KEY = 'salimnote-last-backup-v1';
+      const BACKUP_REMINDER_KEY = 'salimnote-backup-reminder-v1';
       const icons = { laundry: '◌', shopping: '⌑', clothes: '♧', food: '◉', cosmetic: '✿' };
       const labels = { laundry: '빨래', shopping: '장보기', clothes: '옷 구매', food: '식품', cosmetic: '화장품' };
       const cosmeticDefaults = { mascara: 3, eyeliner: 6, skincare: 12, cream: 6, sunscreen: 12, makeup: 12, other: 6 };
@@ -1339,8 +1341,20 @@
         document.getElementById('photoViewer').classList.add('open');
       }
       function closePhoto() { document.getElementById('photoViewer').classList.remove('open'); document.getElementById('photoViewerImage').removeAttribute('src'); }
+      function maybeRemindBackup() {
+        // 기록이 있는데 30일 넘게 백업이 없으면 알림. 같은 알림은 7일에 한 번만 띄움
+        if (!records.length) return;
+        const now = Date.now();
+        const lastBackup = Date.parse(localStorage.getItem(LAST_BACKUP_KEY) || '');
+        const lastReminder = Date.parse(localStorage.getItem(BACKUP_REMINDER_KEY) || '');
+        if (Number.isFinite(lastBackup) && now - lastBackup < 30 * 86400000) return;
+        if (Number.isFinite(lastReminder) && now - lastReminder < 7 * 86400000) return;
+        localStorage.setItem(BACKUP_REMINDER_KEY, new Date(now).toISOString());
+        setTimeout(() => showToast('마지막 백업으로부터 30일이 지났어요. 지금 백업해 둘까요?', { label: '백업하기', onClick: exportData }), 800);
+      }
       function exportData() {
         const blob = new Blob([JSON.stringify({ app: '살림 기록', version: 3, exportedAt: new Date().toISOString(), records, medicines, medicationChecks, routines, shoppingList }, null, 2)], { type: 'application/json' });
+        localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString());
         const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `살림기록-백업-${today}.json`; a.click(); URL.revokeObjectURL(url); showToast('백업 파일을 만들었어요.');
       }
       function csvCell(value) {
@@ -1541,6 +1555,7 @@
       document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkNotifications(); renderMedications(); } });
       setInterval(() => { checkNotifications(); renderMedications(); }, 60 * 1000);
       render();
+      maybeRemindBackup();
       checkNotifications();
     })();
   </script>
