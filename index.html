@@ -1334,7 +1334,9 @@
         if (!input) return;
         const item = shoppingList.find(entry => entry.id === input.dataset.shoppingToggle);
         if (!item) return;
+        const keepFocus = document.activeElement === input;
         item.done = input.checked; saveShoppingList(); renderShoppingList();
+        if (keepFocus) [...document.querySelectorAll('[data-shopping-toggle]')].find(control => control.dataset.shoppingToggle === item.id)?.focus();
       });
       document.getElementById('shoppingItems').addEventListener('click', event => {
         const button = event.target.closest('[data-shopping-remove]');
