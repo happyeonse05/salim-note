@@ -929,7 +929,7 @@
       function addShoppingListItem() {
         const input = document.getElementById('shoppingItemInput');
         const name = input.value.trim();
-        if (!name) { input.focus(); return; }
+        if (!name) { showToast('품목 이름을 입력해 주세요.'); input.focus(); return; }
         const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         shoppingList.unshift({ id, name, done: false, createdAt: today });
         saveShoppingList(); input.value = ''; renderShoppingList(); input.focus();
