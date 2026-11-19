@@ -606,8 +606,8 @@
         <div class="form-body"><div class="form-grid">
           <div class="field full"><label for="medName">약 이름</label><input id="medName" name="name" required maxlength="80" placeholder="예: 비타민 D"></div>
           <div class="field full"><label for="medDose">복용량 <span class="hint">선택</span></label><input id="medDose" name="dose" maxlength="40" placeholder="예: 1정, 5ml"></div>
-          <div class="field full"><label>복용 시간</label><div id="medTimes"></div><button class="secondary-button" type="button" id="addMedTime">＋ 시간 추가</button></div>
-          <div class="field full"><label>복용 요일</label><div class="day-picker" id="dayPicker"></div></div>
+          <div class="field full"><label id="medTimesLabel">복용 시간</label><div id="medTimes" role="group" aria-labelledby="medTimesLabel"></div><button class="secondary-button" type="button" id="addMedTime">＋ 시간 추가</button></div>
+          <div class="field full"><label id="medDaysLabel">복용 요일</label><div class="day-picker" id="dayPicker" role="group" aria-labelledby="medDaysLabel"></div></div>
           <div class="field"><label for="medStartDate">시작일 <span class="hint">선택</span></label><input id="medStartDate" name="startDate" type="date"></div>
           <div class="field"><label for="medEndDate">종료일 <span class="hint">선택</span></label><input id="medEndDate" name="endDate" type="date"></div>
         </div><p class="med-disclaimer">알림은 이 앱이 열려 있고 브라우저 알림을 허용한 동안 전송됩니다. 앱을 닫은 시간의 미복용 일정은 다음 방문 시 표시됩니다.</p></div>
