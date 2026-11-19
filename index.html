@@ -1616,7 +1616,9 @@
         }
         if (e.key !== 'Tab') return;
         // Keep keyboard focus inside the open dialog (aria-modal) so Tab cannot reach the page behind it.
-        const dialog = document.querySelector('.modal-backdrop.open');
+        // 사진 보기 화면(aria-modal)도 같은 방식으로 Tab 포커스를 가둠
+        const photoViewer = document.getElementById('photoViewer');
+        const dialog = document.querySelector('.modal-backdrop.open') || (photoViewer.classList.contains('open') ? photoViewer : null);
         if (!dialog) return;
         const focusables = [...dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter(el => el.getClientRects().length > 0);
         if (!focusables.length) return;
