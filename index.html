@@ -1409,6 +1409,7 @@
         const row = e.target.closest('.med-time-row');
         const nextInput = (row.nextElementSibling || row.previousElementSibling)?.querySelector('input');
         row.remove();
+        document.querySelectorAll('#medTimes input[name="medTime"]').forEach((input, index) => input.setAttribute('aria-label', `복용 시간 ${index + 1}`));
         nextInput?.focus();
       });
       const doseClick = e => { const button = e.target.closest('[data-dose-id]'); if (button) toggleDose(button.dataset.doseId, button.dataset.doseTime); };
