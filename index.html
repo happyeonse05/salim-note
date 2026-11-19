@@ -989,6 +989,8 @@
         item.lastDone = today;
         item.nextDate = advanceRoutineDate(today, item.cadence);
         saveRoutines(); render();
+        // 목록이 다시 그려져 포커스가 사라지므로, 같은 일정의 완료 버튼으로 되돌림 (날짜순 정렬로 자리가 바뀌어도 id로 찾음)
+        document.querySelector(`[data-routine-done="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
         showToast(`완료했어요. 다음 일정은 ${formatDate(item.nextDate, false)}예요.`, {
           label: '실행 취소',
           onClick: () => {
