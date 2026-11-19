@@ -1136,7 +1136,9 @@
           const filtered = currentView === 'expiry' && expiryFilter !== 'all' && !q;
           const emptyTitle = q ? '검색 결과 없음' : filtered ? '이 기간의 기록이 없어요' : '기록 없음';
           const emptyBody = q ? '다른 검색어를 입력하세요.' : filtered ? '다른 기간 필터를 선택해 보세요.' : '새 기록 버튼으로 항목을 추가하세요.';
-          list.innerHTML = `<div class="panel empty-state"><strong>${emptyTitle}</strong><span>${emptyBody}</span></div>`;
+          // 검색 결과가 없을 때는 한 번에 검색어를 지울 수 있는 버튼을 함께 보여줌
+          const clearButton = q ? '<button class="secondary-button" type="button" data-clear-search>검색 지우기</button>' : '';
+          list.innerHTML = `<div class="panel empty-state"><strong>${emptyTitle}</strong><span>${emptyBody}</span>${clearButton}</div>`;
           return;
         }
         list.innerHTML = items.map(item => recordCard(item)).join('');
@@ -1482,7 +1484,13 @@
         const photo = e.target.closest('[data-photo]');
         const edit = e.target.closest('[data-edit]');
         const remove = e.target.closest('[data-delete]');
-        if (photo) showPhoto(photo.dataset.photo);
+        const clearSearch = e.target.closest('[data-clear-search]');
+        if (clearSearch) {
+          // 목록이 다시 그려지므로, 검색 입력란으로 포커스를 돌려보냄
+          const input = document.getElementById('searchInput');
+          input.value = ''; renderList(); input.focus();
+        }
+        else if (photo) showPhoto(photo.dataset.photo);
         else if (edit) { const item = records.find(x => x.id === edit.dataset.edit); if (item) openModal(item.kind, item); }
         else if (remove) deleteRecord(remove.dataset.delete, remove);
       });
