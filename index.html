@@ -1318,12 +1318,18 @@
         try { saveMedicines(); closeMedicationModal(); render(); showToast(old ? '약 정보를 수정했어요.' : '약을 추가했어요.'); checkNotifications(); }
         catch { showToast('저장 공간이 부족합니다.'); }
       }
-      function deleteMedicine(id) {
+      function deleteMedicine(id, button) {
         const med = medicines.find(m => m.id === id);
         if (!med || !window.confirm(`“${med.name}” 약과 일정을 삭제할까요? 복용 기록도 함께 지워집니다.`)) return;
+        // 삭제 후 목록이 다시 그려지므로, 같은 자리의 다음(또는 이전) 약의 삭제 버튼으로 포커스를 옮김
+        const list = document.getElementById('medList');
+        const index = [...list.querySelectorAll('[data-delete-med]')].indexOf(button);
         medicines = medicines.filter(m => m.id !== id);
         for (const key of Object.keys(medicationChecks)) if (key.startsWith(`${id}|`)) delete medicationChecks[key];
-        try { saveMedicines(); saveChecks(); render(); showToast('약을 삭제했어요.'); }
+        try {
+          saveMedicines(); saveChecks(); render(); showToast('약을 삭제했어요.');
+          focusAfterRemoval(list, '[data-delete-med]', index, document.getElementById('addMedication'));
+        }
         catch { showToast('삭제 내용을 저장하지 못했어요.'); }
       }
       function showPhoto(id) {
@@ -1507,7 +1513,7 @@
       document.getElementById('medList').addEventListener('click', e => {
         const edit = e.target.closest('[data-edit-med]'); const remove = e.target.closest('[data-delete-med]');
         if (edit) { const med = medicines.find(x => x.id === edit.dataset.editMed); if (med) openMedicationModal(med); }
-        else if (remove) deleteMedicine(remove.dataset.deleteMed);
+        else if (remove) deleteMedicine(remove.dataset.deleteMed, remove);
       });
       document.getElementById('photoViewer').addEventListener('click', e => { if (e.target.id === 'photoViewer' || e.target.id === 'closePhotoViewer') closePhoto(); });
       document.getElementById('closePhotoViewer').addEventListener('click', closePhoto);
