@@ -574,7 +574,7 @@
         <div class="panel-heading"><div><h2 class="panel-title">복용 체크</h2><p class="panel-caption">약과 복용 시간을 등록하고 오늘 복용을 기록합니다.</p></div><button class="primary-button" id="addMedication"><span class="plus">＋</span> 약 추가</button></div>
         <div class="med-layout">
           <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">오늘 복용 일정</h2><p class="panel-caption" id="medTodayCaption"></p></div></div><div class="med-dose-list" id="medDoseList"></div></section>
-          <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">등록된 약</h2><p class="panel-caption">약 이름, 시간, 요일</p></div></div><div class="med-list" id="medList"></div><p class="med-disclaimer">복용 여부 기록용입니다. 복용량·복용법은 처방 및 제품 설명을 따르세요.</p></section>
+          <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">등록된 약</h2><p class="panel-caption">약 이름, 시간, 요일</p></div><span class="shopping-count" id="medCount">0개</span></div><div class="med-list" id="medList"></div><p class="med-disclaimer">복용 여부 기록용입니다. 복용량·복용법은 처방 및 제품 설명을 따르세요.</p></section>
         </div>
       </section>
       <section class="routine-section" id="routineSection">
@@ -823,6 +823,7 @@
       }
       function renderMedicineList() {
         const target = document.getElementById('medList');
+        document.getElementById('medCount').textContent = `${medicines.length}개`;
         if (!medicines.length) {
           target.innerHTML = `<div class="empty-state"><strong>등록된 약이 없습니다</strong><span>복용할 약을 추가해 일정을 설정하세요.</span></div>`;
           return;
