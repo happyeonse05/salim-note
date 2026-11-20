@@ -1646,8 +1646,13 @@
       document.getElementById('importFile').addEventListener('change', e => { const file = e.target.files?.[0]; if (file) importData(file); e.target.value = ''; });
       document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
-          if (editingRoutineId && !document.querySelector('.modal-backdrop.open')) { resetRoutineForm(); return; }
-          closeModal(); closeMedicationModal(); closePhoto(); return;
+          // Escape는 가장 위에 열린 화면 하나만 닫음 (사진 > 약 > 기록 > 반복 일정 수정).
+          // 열려 있지 않은 다른 화면의 입력값을 지우거나 포커스를 엉뚱한 곳으로 옮기지 않게 함
+          if (document.getElementById('photoViewer').classList.contains('open')) { closePhoto(); return; }
+          if (document.getElementById('medModalBackdrop').classList.contains('open')) { closeMedicationModal(); return; }
+          if (document.getElementById('modalBackdrop').classList.contains('open')) { closeModal(); return; }
+          if (editingRoutineId) resetRoutineForm();
+          return;
         }
         if (e.key !== 'Tab') return;
         // Keep keyboard focus inside the open dialog (aria-modal) so Tab cannot reach the page behind it.
