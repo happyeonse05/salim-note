@@ -375,7 +375,7 @@
     .shopping-items { gap: 6px; }
     .shopping-item { min-height: 46px; padding: 8px 10px; }
     .shopping-item input { width: 17px; height: 17px; accent-color: var(--green); }
-    .shopping-item-name { min-width: 0; flex: 1; font-size: 13px; }
+    .shopping-item-name { min-width: 0; flex: 1; font-size: 13px; cursor: pointer; overflow-wrap: anywhere; }
     .shopping-item.checked .shopping-item-name { color: #8a948e; text-decoration: line-through; }
     .shopping-remove { width: 30px; height: 30px; border: 0; border-radius: 7px; background: transparent; color: #78827b; font-size: 16px; }
     .shopping-list-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
@@ -947,7 +947,7 @@
         document.getElementById('shoppingCount').textContent = `${shoppingList.length}개`;
         document.getElementById('shoppingCheckedCount').textContent = `체크한 항목 ${checked.length}개`;
         document.getElementById('saveShoppingPurchase').disabled = checked.length === 0;
-        target.innerHTML = shoppingList.length ? shoppingList.map(item => `<div class="shopping-item ${item.done ? 'checked' : ''}"><input type="checkbox" data-shopping-toggle="${escapeHtml(item.id)}" ${item.done ? 'checked' : ''} aria-label="${escapeHtml(item.name)} 구매 여부"><span class="shopping-item-name">${escapeHtml(item.name)}</span><button class="shopping-remove" type="button" data-shopping-remove="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 삭제">×</button></div>`).join('') : `<div class="empty-state"><strong>장보기 목록이 비어 있어요</strong><span>살 물건을 입력하고 추가해 주세요.</span></div>`;
+        target.innerHTML = shoppingList.length ? shoppingList.map(item => `<div class="shopping-item ${item.done ? 'checked' : ''}"><input type="checkbox" id="shop-${escapeHtml(item.id)}" data-shopping-toggle="${escapeHtml(item.id)}" ${item.done ? 'checked' : ''} aria-label="${escapeHtml(item.name)} 구매 여부"><label class="shopping-item-name" for="shop-${escapeHtml(item.id)}">${escapeHtml(item.name)}</label><button class="shopping-remove" type="button" data-shopping-remove="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 삭제">×</button></div>`).join('') : `<div class="empty-state"><strong>장보기 목록이 비어 있어요</strong><span>살 물건을 입력하고 추가해 주세요.</span></div>`;
       }
       function addShoppingListItem() {
         const input = document.getElementById('shoppingItemInput');
