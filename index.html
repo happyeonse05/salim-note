@@ -1004,6 +1004,14 @@
           document.getElementById('routineNextDate').focus();
           return;
         }
+        // 같은 이름의 일정이 이미 있으면 중복 등록을 막고 이름 입력란을 선택 상태로 둠 (수정 중인 항목은 제외)
+        const duplicate = routines.some(item => item.id !== editingRoutineId && item.name.trim().toLowerCase() === name.toLowerCase());
+        if (duplicate) {
+          showToast(`“${name}” 일정이 이미 있어요.`);
+          const nameInput = document.getElementById('routineName');
+          nameInput.focus(); nameInput.select();
+          return;
+        }
         const old = routines.find(item => item.id === editingRoutineId);
         const id = old?.id || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
         const updated = { ...(old || {}), id, name, nextDate, cadence, createdAt: old?.createdAt || today, lastDone: old?.lastDone || '' };
