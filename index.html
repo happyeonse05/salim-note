@@ -341,6 +341,7 @@
     .storage-note { font-size: 11px; }
     .field label { font-size: 12px; }
     .field input, .field select, .field textarea { font-size: 13px; }
+    .char-count { display: block; margin-top: 5px; color: #8b948d; font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
     .type-tab { font-size: 10px; }
     .med-card-name { font-size: 13px; }
     .med-card-info, .med-disclaimer { font-size: 11px; }
@@ -1249,7 +1250,7 @@
       function field(label, name, type = 'text', value = '', opts = {}) {
         const full = opts.full ? ' full' : '';
         if (type === 'select') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><select id="${name}" name="${name}" ${opts.attrs || ''}>${opts.options.map(o => `<option value="${escapeHtml(o.value)}" ${String(value) === String(o.value) ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}</select></div>`;
-        if (type === 'textarea') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><textarea id="${name}" name="${name}" maxlength="500" placeholder="${escapeHtml(opts.placeholder || '')}">${escapeHtml(value)}</textarea></div>`;
+        if (type === 'textarea') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><textarea id="${name}" name="${name}" maxlength="500" aria-describedby="${name}-count" placeholder="${escapeHtml(opts.placeholder || '')}">${escapeHtml(value)}</textarea><small class="char-count" id="${name}-count">${String(value ?? '').length}/500</small></div>`;
         return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><input id="${name}" name="${name}" type="${type}" value="${escapeHtml(value)}" placeholder="${escapeHtml(opts.placeholder || '')}" ${opts.required ? 'required' : ''} ${opts.min ? `min="${opts.min}"` : ''} ${opts.max ? `max="${opts.max}"` : ''} ${opts.attrs || ''}></div>`;
       }
       function renderForm() {
@@ -1545,7 +1546,14 @@
       document.getElementById('modalBackdrop').addEventListener('click', e => { if (e.target.id === 'modalBackdrop') closeModal(); });
       document.getElementById('typeTabs').addEventListener('click', e => { const tab = e.target.closest('[data-type]'); if (tab) { currentType = tab.dataset.type; updateTabs(); renderForm(); } });
       document.getElementById('recordForm').addEventListener('submit', saveForm);
-      document.getElementById('formFields').addEventListener('input', e => { if (['openedAt','paoMonths','labelDate','cosmeticType'].includes(e.target.name)) updateCosmeticPreview(); });
+      document.getElementById('formFields').addEventListener('input', e => {
+        if (['openedAt','paoMonths','labelDate','cosmeticType'].includes(e.target.name)) updateCosmeticPreview();
+        // 메모 글자 수를 실시간으로 표시해 500자 제한에 가까워졌을 때 미리 알 수 있게 함
+        if (e.target.tagName === 'TEXTAREA') {
+          const count = document.getElementById(`${e.target.id}-count`);
+          if (count) count.textContent = `${e.target.value.length}/500`;
+        }
+      });
       document.getElementById('formFields').addEventListener('change', e => {
         if (e.target.name === 'cosmeticType') { const select = document.getElementById('paoMonths'); if (select) select.value = cosmeticDefaults[e.target.value] || 6; updateCosmeticPreview(); }
         if (['openedAt','paoMonths','labelDate'].includes(e.target.name)) updateCosmeticPreview();
