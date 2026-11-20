@@ -385,6 +385,13 @@
     .filter-chips[hidden] { display: none; }
     .filter-chip { min-height: 34px; padding: 0 13px; border: 1px solid var(--line); border-radius: 99px; background: var(--paper); color: #6b766f; font-size: 12px; font-weight: 600; }
     .filter-chip.active { border-color: #b7cbbf; background: var(--green-pale); color: var(--green); font-weight: 750; }
+    .confirm-backdrop { z-index: 25; }
+    .confirm-modal { width: min(100%, 400px); }
+    .confirm-body { padding: 23px 25px 6px; }
+    .confirm-body h2 { margin: 0; font-size: 17px; letter-spacing: -.5px; }
+    .confirm-body p { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .danger-button { min-height: 39px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--coral); color: #fff; font-size: 12px; font-weight: 700; }
+    .danger-button:hover { background: #a25740; }
     .toast.has-action { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
     .toast-action { border: 0; padding: 0; background: transparent; color: #cfe5d9; font-size: 11px; font-weight: 750; text-decoration: underline; }
     @media (max-width: 640px) {
@@ -397,7 +404,7 @@
     @media (max-width: 820px) {
       .sidebar { inset: auto 0 0; display: block; width: 100%; height: 72px; overflow-x: auto; overflow-y: hidden; padding: 5px 8px max(5px, env(safe-area-inset-bottom)); }
       .nav-list { display: flex; justify-content: flex-start; gap: 2px; width: max-content; min-width: 100%; }
-      .nav-item { flex: 0 0 64px; min-width: 64px; min-height: 60px; gap: 2px; padding: 5px 3px; font-size: 10px; }
+      .nav-item { flex: 0 0 64px; min-width: 64px; min-height: 60px; gap: 2px; padding: 5px 3px; font-size: 11px; }
       .nav-item.active { box-shadow: inset 0 3px var(--green); }
       .nav-icon { font-size: 17px; }
       .main { margin-left: 0; padding: 0 24px 98px; }
@@ -619,6 +626,12 @@
       </form>
     </div>
   </div>
+  <div class="modal-backdrop confirm-backdrop" id="confirmBackdrop" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+    <div class="modal confirm-modal">
+      <div class="confirm-body"><h2 id="confirmTitle">삭제할까요?</h2><p id="confirmMessage"></p></div>
+      <div class="form-footer"><button type="button" class="secondary-button" id="confirmCancel">취소</button><button type="button" class="danger-button" id="confirmOk">삭제</button></div>
+    </div>
+  </div>
   <div class="photo-viewer" id="photoViewer" role="dialog" aria-modal="true" aria-label="첨부 사진 보기"><button type="button" id="closePhotoViewer" aria-label="사진 닫기">×</button><img id="photoViewerImage" alt="첨부 사진 크게 보기"></div>
   <input type="file" id="importFile" accept="application/json,.json">
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -706,6 +719,11 @@
           return item.labelDate || opened;
         }
         return '';
+      }
+      function formatWon(value) {
+        const text = String(value ?? '').trim();
+        const amount = Number(text);
+        return text !== '' && Number.isFinite(amount) && amount >= 0 ? `${amount.toLocaleString('ko-KR')}원` : '';
       }
       function escapeHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -1001,6 +1019,8 @@
         const previous = { lastDone: item.lastDone || '', nextDate: item.nextDate };
         item.lastDone = today;
         item.nextDate = advanceRoutineDate(today, item.cadence);
+        // 수정 중인 일정을 완료하면 수정 모드를 풀어 입력란과 완료 상태가 어긋나지 않게 함
+        if (editingRoutineId === id) resetRoutineForm();
         saveRoutines(); render();
         // 목록이 다시 그려져 포커스가 사라지므로, 같은 일정의 완료 버튼으로 되돌림 (날짜순 정렬로 자리가 바뀌어도 id로 찾음)
         document.querySelector(`[data-routine-done="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
@@ -1014,9 +1034,9 @@
           }
         });
       }
-      function deleteRoutine(id, button) {
+      async function deleteRoutine(id, button) {
         const item = routines.find(routine => routine.id === id);
-        if (!item || !window.confirm(`“${item.name}” 반복 일정을 삭제할까요?`)) return;
+        if (!item || !(await askConfirm(`“${item.name}” 반복 일정을 삭제할까요?`))) return;
         const list = document.getElementById('routineList');
         const index = [...list.querySelectorAll('[data-routine-delete]')].indexOf(button);
         if (editingRoutineId === id) resetRoutineForm();
@@ -1101,10 +1121,11 @@
         } else {
           // 대시보드에는 4개만 보여주므로, 나머지 개수를 알려 목록이 잘린 줄 모르는 일이 없게 함
           const hiddenCount = alerts.length - 4;
+          // 아래 '사용기한 전체 보기' 버튼은 data-open-view로 사용기한 화면으로 이동
           alertList.innerHTML = alerts.slice(0,4).map(item => {
             const due = deadlineLabel(item);
             return `<div class="alert-row ${due.className === 'urgent' || due.className === 'past' ? 'urgent' : ''}"><div class="alert-symbol">${icons[item.kind]}</div><div class="alert-meta"><div class="alert-name">${escapeHtml(item.name)}</div><div class="alert-date">${labels[item.kind]} · ${formatDate(item.deadline, false)}까지</div></div><span class="deadline ${due.className}">${due.text}</span></div>`;
-          }).join('') + (hiddenCount > 0 ? `<p class="list-more">외 ${hiddenCount}건이 더 있어요. 전체 보기에서 확인하세요.</p>` : '');
+          }).join('') + (hiddenCount > 0 ? `<p class="list-more">외 ${hiddenCount}건이 더 있어요. <button class="link-button" type="button" data-open-view="expiry">사용기한 전체 보기 →</button></p>` : '');
         }
         const activity = sortedRecords().slice(0,4);
         const activityList = document.getElementById('activityList');
@@ -1251,7 +1272,7 @@
         const full = opts.full ? ' full' : '';
         if (type === 'select') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><select id="${name}" name="${name}" ${opts.attrs || ''}>${opts.options.map(o => `<option value="${escapeHtml(o.value)}" ${String(value) === String(o.value) ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('')}</select></div>`;
         if (type === 'textarea') return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><textarea id="${name}" name="${name}" maxlength="500" aria-describedby="${name}-count" placeholder="${escapeHtml(opts.placeholder || '')}">${escapeHtml(value)}</textarea><small class="char-count" id="${name}-count">${String(value ?? '').length}/500</small></div>`;
-        return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><input id="${name}" name="${name}" type="${type}" value="${escapeHtml(value)}" placeholder="${escapeHtml(opts.placeholder || '')}" ${opts.required ? 'required' : ''} ${opts.min ? `min="${opts.min}"` : ''} ${opts.max ? `max="${opts.max}"` : ''} ${opts.attrs || ''}></div>`;
+        return `<div class="field${full}"><label for="${name}">${label}${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</label><input id="${name}" name="${name}" type="${type}" value="${escapeHtml(value)}" placeholder="${escapeHtml(opts.placeholder || '')}" ${opts.required ? 'required' : ''} ${opts.min ? `min="${opts.min}"` : ''} ${opts.max ? `max="${opts.max}"` : ''} ${opts.attrs || ''}>${opts.preview ? `<small class="char-count" id="${name}-preview">${formatWon(value)}</small>` : ''}</div>`;
       }
       function renderForm() {
         const fields = document.getElementById('formFields');
@@ -1261,7 +1282,7 @@
         const commonName = field(currentType === 'food' || currentType === 'cosmetic' ? '제품명' : '기록 이름', 'name', 'text', current.name || '', { full: true, required: true, placeholder: ({ laundry: '예: 수건·흰옷 세탁', shopping: '예: 주말 장보기', clothes: '예: 네이비 가디건', food: '예: 우유 900ml', cosmetic: '예: 수분 세럼' })[currentType] });
         if (currentType === 'laundry') fields.innerHTML = commonName + field('빨래한 날짜', 'date', 'date', current.date || today, { required: true }) + field('메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '세탁 코스 메모' });
         if (currentType === 'shopping') fields.innerHTML = commonName + field('장 본 날짜', 'date', 'date', current.date || today, { required: true }) + field('구매한 것', 'note', 'textarea', current.note || '', { full: true, placeholder: '우유, 달걀, 채소' });
-        if (currentType === 'clothes') fields.innerHTML = commonName + field('구매한 날짜', 'date', 'date', current.date || today, { required: true }) + field('가격', 'amount', 'number', current.amount || '', { min: '0', hint: '선택' }) + field('메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '브랜드, 사이즈' });
+        if (currentType === 'clothes') fields.innerHTML = commonName + field('구매한 날짜', 'date', 'date', current.date || today, { required: true }) + field('가격', 'amount', 'number', current.amount || '', { min: '0', hint: '선택', preview: true }) + field('메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '브랜드, 사이즈' });
         if (currentType === 'food') fields.innerHTML = commonName + field('기한 종류', 'dateType', 'select', current.dateType || '소비기한', { options: [{ value: '소비기한', label: '소비기한' }, { value: '유통기한', label: '유통기한' }, { value: '권장 섭취일', label: '권장 섭취일' }] }) + field('기한 날짜', 'expiryDate', 'date', current.expiryDate || '', { required: true }) + field('등록일', 'date', 'date', current.date || today, { required: true }) + field('보관 메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '냉장·냉동 보관 위치' });
         if (currentType === 'cosmetic') {
           const categoryOptions = [{ value: 'mascara', label: '마스카라 (기본 3개월)' }, { value: 'eyeliner', label: '리퀴드 아이라이너 (기본 6개월)' }, { value: 'cream', label: '크림·밤 타입 (기본 6개월)' }, { value: 'skincare', label: '기초 스킨케어 (기본 12개월)' }, { value: 'sunscreen', label: '선크림 (기본 12개월)' }, { value: 'makeup', label: '메이크업 제품 (기본 12개월)' }, { value: 'other', label: '기타 (기본 6개월)' }];
@@ -1331,9 +1352,30 @@
         const target = remaining[index] || remaining[index - 1] || fallback;
         target?.focus({ preventScroll: true });
       }
-      function deleteRecord(id, button) {
+      // 앱 디자인에 맞는 삭제 확인 창. 열려 있는 동안 결과(true/false)를 Promise로 돌려줌
+      let confirmResolver = null;
+      let confirmOpener = null;
+      function askConfirm(message, title = '삭제할까요?') {
+        confirmOpener = document.activeElement;
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmBackdrop').classList.add('open');
+        setTimeout(() => document.getElementById('confirmCancel').focus({ preventScroll: true }), 30);
+        return new Promise(resolve => { confirmResolver = resolve; });
+      }
+      function closeConfirm(result) {
+        const backdrop = document.getElementById('confirmBackdrop');
+        if (!backdrop.classList.contains('open')) return;
+        backdrop.classList.remove('open');
+        const resolve = confirmResolver; confirmResolver = null;
+        // 확인 창을 연 버튼으로 포커스를 돌려줌 (삭제 후에는 호출 쪽에서 다음 항목으로 다시 옮김)
+        if (confirmOpener?.isConnected) confirmOpener.focus({ preventScroll: true });
+        confirmOpener = null;
+        resolve?.(result);
+      }
+      async function deleteRecord(id, button) {
         const item = records.find(x => x.id === id);
-        if (!item || !window.confirm(`“${item.name}” 기록을 삭제할까요?`)) return;
+        if (!item || !(await askConfirm(`“${item.name}” 기록을 삭제할까요?`))) return;
         const list = document.getElementById('recordList');
         const index = [...list.querySelectorAll('[data-delete]')].indexOf(button);
         records = records.filter(x => x.id !== id); save(); render(); showToast('기록을 삭제했어요.');
@@ -1397,9 +1439,9 @@
         try { saveMedicines(); closeMedicationModal(); render(); showToast(old ? '약 정보를 수정했어요.' : '약을 추가했어요.'); checkNotifications(); }
         catch { showToast('저장 공간이 부족합니다.'); }
       }
-      function deleteMedicine(id, button) {
+      async function deleteMedicine(id, button) {
         const med = medicines.find(m => m.id === id);
-        if (!med || !window.confirm(`“${med.name}” 약과 일정을 삭제할까요? 복용 기록도 함께 지워집니다.`)) return;
+        if (!med || !(await askConfirm(`“${med.name}” 약과 일정을 삭제할까요? 복용 기록도 함께 지워집니다.`))) return;
         // 삭제 후 목록이 다시 그려지므로, 같은 자리의 다음(또는 이전) 약의 삭제 버튼으로 포커스를 옮김
         const list = document.getElementById('medList');
         const index = [...list.querySelectorAll('[data-delete-med]')].indexOf(button);
@@ -1495,6 +1537,11 @@
       document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', () => switchView(button.dataset.view)));
       document.querySelectorAll('[data-open-view]').forEach(button => button.addEventListener('click', () => switchView(button.dataset.openView)));
       document.querySelectorAll('[data-add]').forEach(button => button.addEventListener('click', () => openModal(button.dataset.add)));
+      // 기한 임박 목록은 다시 그려지므로, 버튼이 아니라 목록 컨테이너에서 클릭을 받음
+      document.getElementById('alertList').addEventListener('click', e => {
+        const link = e.target.closest('[data-open-view]');
+        if (link) switchView(link.dataset.openView);
+      });
       document.getElementById('openAdd').addEventListener('click', () => {
         if (currentView === 'medications') return openMedicationModal();
         if (currentView === 'routines') { document.getElementById('routineName').focus(); return; }
@@ -1552,6 +1599,11 @@
         if (e.target.tagName === 'TEXTAREA') {
           const count = document.getElementById(`${e.target.id}-count`);
           if (count) count.textContent = `${e.target.value.length}/500`;
+        }
+        // 옷 구매 가격은 입력하는 동안 천 단위 원화 표시를 함께 보여줌
+        if (e.target.name === 'amount') {
+          const preview = document.getElementById('amount-preview');
+          if (preview) preview.textContent = formatWon(e.target.value);
         }
       });
       document.getElementById('formFields').addEventListener('change', e => {
@@ -1647,6 +1699,9 @@
       });
       document.getElementById('photoViewer').addEventListener('click', e => { if (e.target.id === 'photoViewer' || e.target.id === 'closePhotoViewer') closePhoto(); });
       document.getElementById('closePhotoViewer').addEventListener('click', closePhoto);
+      document.getElementById('confirmOk').addEventListener('click', () => closeConfirm(true));
+      document.getElementById('confirmCancel').addEventListener('click', () => closeConfirm(false));
+      document.getElementById('confirmBackdrop').addEventListener('click', e => { if (e.target.id === 'confirmBackdrop') closeConfirm(false); });
       document.getElementById('exportButton').addEventListener('click', exportData);
       document.getElementById('backupInline').addEventListener('click', exportData);
       document.getElementById('exportCsv').addEventListener('click', exportRecordsCsv);
@@ -1654,6 +1709,8 @@
       document.getElementById('importFile').addEventListener('change', e => { const file = e.target.files?.[0]; if (file) importData(file); e.target.value = ''; });
       document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
+          // 삭제 확인 창이 가장 위에 있으므로 먼저 닫음 (취소 처리)
+          if (document.getElementById('confirmBackdrop').classList.contains('open')) { closeConfirm(false); return; }
           // Escape는 가장 위에 열린 화면 하나만 닫음 (사진 > 약 > 기록 > 반복 일정 수정).
           // 열려 있지 않은 다른 화면의 입력값을 지우거나 포커스를 엉뚱한 곳으로 옮기지 않게 함
           if (document.getElementById('photoViewer').classList.contains('open')) { closePhoto(); return; }
@@ -1666,7 +1723,9 @@
         // Keep keyboard focus inside the open dialog (aria-modal) so Tab cannot reach the page behind it.
         // 사진 보기 화면(aria-modal)도 같은 방식으로 Tab 포커스를 가둠
         const photoViewer = document.getElementById('photoViewer');
-        const dialog = document.querySelector('.modal-backdrop.open') || (photoViewer.classList.contains('open') ? photoViewer : null);
+        // 여러 대화상자가 겹치면(삭제 확인 등) 가장 위(DOM 뒤쪽)에 열린 것을 기준으로 포커스를 가둠
+        const openDialogs = document.querySelectorAll('.modal-backdrop.open');
+        const dialog = openDialogs[openDialogs.length - 1] || (photoViewer.classList.contains('open') ? photoViewer : null);
         if (!dialog) return;
         const focusables = [...dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter(el => el.getClientRects().length > 0);
         if (!focusables.length) return;
