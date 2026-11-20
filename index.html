@@ -1648,6 +1648,24 @@
         e.target.value = ''; renderList();
       });
       document.getElementById('sortSelect').addEventListener('change', renderList);
+      // 유형 탭과 사용기한 필터는 방향키(←/→)와 Home/End로 포커스를 옮길 수 있어요.
+      function bindArrowNavigation(container, selector) {
+        container.addEventListener('keydown', event => {
+          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+          const items = [...container.querySelectorAll(selector)];
+          const current = items.indexOf(document.activeElement);
+          if (current === -1) return;
+          event.preventDefault();
+          let next = current;
+          if (event.key === 'ArrowLeft') next = (current - 1 + items.length) % items.length;
+          else if (event.key === 'ArrowRight') next = (current + 1) % items.length;
+          else if (event.key === 'Home') next = 0;
+          else next = items.length - 1;
+          items[next].focus();
+        });
+      }
+      bindArrowNavigation(document.getElementById('typeTabs'), '[data-type]');
+      bindArrowNavigation(document.getElementById('expiryFilters'), '[data-expiry-filter]');
       document.getElementById('expiryFilters').addEventListener('click', e => {
         const chip = e.target.closest('[data-expiry-filter]');
         if (!chip) return;
