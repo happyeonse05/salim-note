@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const C = window.SalimCore;
+  const H = window.SalimCare;
   const KEY = 'oneul-salim-v1';
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -20,10 +21,11 @@
     routines: read('salimnote-routines-v1', []), shoppingList: read('salimnote-shopping-list-v1', [])
   };
   const initial = C.initialState(read('salimnote-medicines-v1', []), read('salimnote-med-checks-v1', {}), legacy.records);
+  initial.cosmetics = legacy.records.filter(x => x.kind === 'cosmetic').map(x => ({ ...x, id: `legacy:${x.id}`, category: x.cosmeticType || '기타', legacy: true }));
   function loadState() {
     const saved = read(KEY, null);
     if (!saved) return structuredClone(initial);
-    if (saved.version !== 1 || !Array.isArray(saved.timers) || !Array.isArray(saved.expenses) || !Array.isArray(saved.medicines) || !saved.checks || typeof saved.checks !== 'object' || Array.isArray(saved.checks)) {
+    if ((saved.cosmetics !== undefined && !Array.isArray(saved.cosmetics)) || saved.version !== 1 || !Array.isArray(saved.timers) || !Array.isArray(saved.expenses) || !Array.isArray(saved.medicines) || !saved.checks || typeof saved.checks !== 'object' || Array.isArray(saved.checks)) {
       blocked = true; return structuredClone(initial);
     }
     return { ...structuredClone(initial), ...saved };
@@ -48,12 +50,12 @@
     document.querySelectorAll('[data-screen]').forEach(button => { if (button.dataset.screen === next) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current'); });
     if (next === 'today') renderToday();
     if (next === 'history') renderHistory();
-    if (next === 'add') { kind = ''; editingId = null; $('entryForm').hidden = true; $('addTitle').textContent = '무엇을 기록할까요?'; updateTypes(); }
+    if (next === 'add') { renderQuickEntries(); kind = ''; editingId = null; $('entryForm').hidden = true; $('addTitle').textContent = '무엇을 기록할까요?'; updateTypes(); }
     window.scrollTo({ top: 0, behavior: 'instant' });
     if (focus) { const heading = $(next === 'today' ? 'todayTitle' : next === 'add' ? 'addTitle' : 'historyTitle'); heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
   }
   function row(title, meta, actions = '', attrs = '') {
-    return `<div class="row" ${attrs}><div class="row-copy"><div class="row-title">${title}</div>${meta ? `<span class="row-meta">${meta}</span>` : ''}</div>${actions ? `<div class="row-actions">${actions}</div>` : ''}</div>`;
+    return `<div class="row" ${attrs}><div class="row-copy"><div class="row-title">${title}</div>${meta ? `<div class="row-meta">${meta}</div>` : ''}</div>${actions ? `<div class="row-actions">${actions}</div>` : ''}</div>`;
   }
   function weekMarkup(link = true) {
     const total = C.weeklyTotal(state.expenses), range = C.weekRange();
@@ -69,8 +71,8 @@
     for (const timer of state.timers) {
       const status = C.timerStatus(timer);
       if (status.state === 'running' || status.state === 'ready') {
-        const title = status.state === 'ready' ? '빨래 · 설정 시간 끝' : `빨래 · ${status.minutes}분 남음`;
-        const meta = status.state === 'ready' ? '널기 · 세탁 상태를 확인해 주세요.' : `${timer.minutes}분으로 시작 · ${timeText(timer.startedAt)}`;
+        const title = H.laundryTitle(timer, date);
+        const meta = status.state === 'ready' ? '설정한 시간 기준' : `${timeText(timer.endsAtDate || new Date(timer.endsAt).toISOString())} 종료 예정`;
         const action = status.state === 'ready' ? `<button class="plain" data-hang="${esc(timer.id)}">널었어</button>` : `<button class="subtle-button" data-cancel-timer="${esc(timer.id)}" aria-label="빨래 타이머 취소">취소</button>`;
         active.push({ rank: status.state === 'ready' ? 0 : 1, at: timer.endsAt, html: row(`<span data-timer-text="${esc(timer.id)}">${title}</span>`, meta, action) });
       }
@@ -79,16 +81,20 @@
     for (const dose of C.doses(state.medicines, state.checks, now)) {
       if (dose.checkedAt) {
         completed.push({ at: dose.checkedAt, html: row(`${esc(dose.med.name)} · ${timeText(dose.checkedAt) ? `${timeText(dose.checkedAt)}에 먹음` : '복용 기록 있음'}`, `예정 ${dose.time} · 내가 체크한 기록`, `<button class="subtle-button" data-undo-dose="${esc(dose.key)}" aria-label="${esc(dose.med.name)} 복용 기록 취소">취소</button>`) });
-      } else active.push({ rank: 2, at: dose.time, html: row(`${esc(dose.med.name)} · 아직 기록 없음`, `예정 ${dose.time}`, `<button class="plain" data-check="${esc(dose.key)}" aria-label="${esc(dose.med.name)} ${dose.time} 복용 기록">기록</button>`) });
+      } else active.push({ rank: 2, at: dose.time, html: row(esc(dose.med.name), `${lastRecordText(dose.med.id)}${drugGuide(dose.med)}`, `<button class="plain" data-check="${esc(dose.key)}" aria-label="${esc(dose.med.name)} ${dose.time} 복용 기록">기록</button>`) });
+    }
+    for (const med of state.medicines.filter(m => !m.times?.length)) {
+      for (const [key, at] of Object.entries(state.checks)) if (key.split('|')[0] === String(med.id) && C.day(at) === date) completed.push({ at, html: row(esc(med.name), `${timeText(at)}에 남긴 기록${drugGuide(med)}`, `<button class="subtle-button" data-undo-dose="${esc(key)}">취소</button>`) });
     }
     active.sort((a, b) => a.rank - b.rank || String(a.at).localeCompare(String(b.at)));
     $('activeRows').innerHTML = active.map(x => x.html).join(''); $('activeRows').hidden = !active.length;
     $('todayIntro').textContent = active.length ? '진행 중인 일부터 확인하세요.' : completed.length ? '오늘 남긴 기록을 바로 확인하세요.' : '';
+    renderCosmeticSummary();
     const usesExpenses = Boolean(state.expenses.length || state.budget);
     $('weeklySummary').hidden = !usesExpenses; $('weeklySummary').innerHTML = usesExpenses ? weekMarkup() : '';
     completed.sort((a, b) => String(b.at).localeCompare(String(a.at)));
     $('completedRows').innerHTML = completed.map(x => x.html).join(''); $('completedSection').hidden = !completed.length;
-    $('emptyToday').hidden = Boolean(active.length || completed.length || state.expenses.length || state.budget);
+    $('emptyToday').hidden = Boolean(active.length || completed.length || state.expenses.length || state.budget || !$('cosmeticSummary').hidden);
   }
   function historyEntries() {
     const entries = [];
@@ -111,6 +117,7 @@
     }).join('') + '</div>' : '<p class="quiet-empty">아직 남긴 기록이 없어요.</p>';
     $('medicineSettings').innerHTML = state.medicines.length ? state.medicines.map(med => row(esc(med.name), `${esc((med.times || []).join(' · '))}${Array.isArray(med.days) && med.days.length < 7 ? ' · 등록한 요일에 표시' : ''}`, `<button class="small-button" data-edit-med="${esc(med.id)}">수정</button><button class="small-button" data-notify-med="${esc(med.id)}" aria-pressed="${Boolean(state.notifyMeds[med.id])}">알림 ${state.notifyMeds[med.id] ? '켜짐' : '꺼짐'}</button>`)).join('') : '<p class="small-note">등록한 약이 없어요.</p>';
     $('budgetAmount').value = state.budget || '';
+    renderCosmetics();
     renderPrevious();
   }
   function renderPrevious() {
@@ -121,21 +128,89 @@
   }
   function updateTypes() { document.querySelectorAll('[data-kind]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.kind === kind))); }
   function chooseKind(nextKind, id = null) {
+    $('quickSection').hidden = true; $('quickExpenseForm').hidden = true;
     kind = nextKind; editingId = id; updateTypes(); $('entryForm').hidden = false;
     $('saveEntry').textContent = id ? '수정 저장' : kind === 'laundry' ? '시작' : '저장';
-    $('addTitle').textContent = id ? ({ expense: '지출 수정', medicine: '약 수정' }[kind]) : ({ laundry: '빨래 시간 정하기', medicine: '약 등록', expense: '지출 기록' }[kind]);
+    $('addTitle').textContent = id ? ({ expense: '지출 수정', medicine: '약 수정', cosmetic: '화장품 수정' }[kind]) : ({ laundry: '빨래 시간 정하기', medicine: '약 등록', expense: '지출 기록', cosmetic: '화장품 등록' }[kind]);
     if (kind === 'laundry') $('formFields').innerHTML = '<label for="minutes">몇 분 뒤에 확인할까요?</label><div class="inline-form"><input id="minutes" name="minutes" type="number" inputmode="numeric" min="1" max="1440" step="1" value="45" required><span>분</span></div><div class="presets"><button type="button" data-minutes="30">30분</button><button type="button" data-minutes="45">45분</button><button type="button" data-minutes="60">60분</button></div><label class="check-label"><input id="notifyTimer" type="checkbox">설정한 시간이 되면 알림 받기</label><p class="small-note">세탁기와 연결된 타이머가 아니에요.<br>앱을 닫아도 남은 시간은 이어져요. 웹 알림은 앱이 열려 있을 때 받을 수 있어요.</p>';
     if (kind === 'expense') {
       const item = state.expenses.find(x => x.id === id);
       $('formFields').innerHTML = `<label for="amount">얼마 썼나요?</label><div class="amount-wrap"><input id="amount" name="amount" type="text" inputmode="numeric" maxlength="11" value="${item?.amount || ''}" placeholder="0" required autocomplete="off"><span>원</span></div><label for="expenseNote">메모 <span class="optional">선택</span></label><input id="expenseNote" name="note" maxlength="100" placeholder="메모 없이 저장해도 돼요" value="${esc(item?.note || '')}">${item ? `<label for="expenseAt">쓴 ${item.dateOnly ? '날짜' : '시각'}</label><input id="expenseAt" type="${item.dateOnly ? 'date' : 'datetime-local'}" required value="${item.dateOnly ? C.day(item.at) : localInput(item.at)}">` : ''}`;
     }
-    if (kind === 'medicine') {
-      const med = state.medicines.find(x => x.id === id);
-      $('formFields').innerHTML = `<label for="medicineName">이름 또는 별칭</label><input id="medicineName" name="name" maxlength="80" required value="${esc(med?.name || '')}" placeholder="내가 알아볼 이름"><label class="field-label">언제 기록할까요?</label><div id="timeInputs">${(med?.times?.length ? med.times : ['']).map((time, index) => timeField(time, index)).join('')}</div><button type="button" class="text-link" id="moreTime">시간 추가</button><label class="check-label"><input id="notifyMedicine" type="checkbox" ${state.notifyMeds[id] ? 'checked' : ''}>이 약의 알림 받기</label><p class="small-note">알림에는 약 이름을 표시하지 않아요.<br>복용 기록용이며, 복용 방법을 안내하지 않아요.${med && (med.startDate || med.endDate || med.days?.length < 7) ? '<br>기존에 등록한 요일·시작일·종료일은 그대로 유지돼요.' : ''}</p>`;
-    }
+    if (kind === 'medicine') $('formFields').innerHTML = medicineFields(state.medicines.find(x => x.id === id));
+    if (kind === 'cosmetic') $('formFields').innerHTML = cosmeticFields((state.cosmetics || []).find(x => x.id === id));
+    if (kind === 'cosmetic') previewCosmetic();
     $('formFields').querySelector('input')?.focus();
   }
-  function timeField(time = '', index = 0) { return `<div class="time-entry"><input type="time" name="medicineTime" aria-label="복용 시간 ${index + 1}" value="${esc(time)}" required><button type="button" class="small-button" data-remove-time aria-label="복용 시간 삭제">삭제</button></div>`; }
+  function lastRecordText(id) {
+    const at = H.lastCheck(state.checks, id);
+    if (!at) return '내가 남긴 기록 없음';
+    const d = C.day(at), today = C.day(new Date());
+    return `마지막 기록 · ${d === today ? '오늘' : `${Number(d.slice(5, 7))}월 ${Number(d.slice(8))}일`} ${timeText(at)}`;
+  }
+  function drugGuide(med) {
+    const p = H.products.find(x => x.id === med.productId);
+    const notes = [med.fastBeforeMinutes != null ? `식사 후 ${med.fastBeforeMinutes}분 공복 유지` : '', med.fastAfterMinutes != null ? `복용 후 식사까지 ${med.fastAfterMinutes}분` : '', med.mealNote].filter(Boolean);
+    if (!p && !notes.length) return '';
+    return `<details class="drug-guide"><summary>식사·공복 안내</summary>${p ? `<p>${esc(p.ingredient)}</p><p>${esc(p.meal)}</p><p>${esc(p.interval)}</p><p>${esc(p.caution)}</p><p class="source-links">${p.sources.map(([name, url]) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${esc(name)}</a>`).join(' · ')} · 확인 ${H.verifiedAt}</p>` : '<p>자동 안내가 없는 제품이에요. 제품 설명서나 약사가 안내한 내용을 확인하세요.</p>'}${notes.length ? `<p>직접 확인해 남긴 안내: ${notes.map(esc).join(' · ')}</p>` : ''}<p>일반 제품 정보이며 개인별 복용 가능 여부를 판단하지 않아요. 처방·약사 안내가 있으면 그 내용을 따르세요.</p></details>`;
+  }
+  function medicineFields(med) {
+    const scheduled = med ? Boolean(med.times?.length) : true;
+    return `<label for="medicineProduct">정확한 제품</label><select id="medicineProduct"><option value="">직접 등록 · 약 봉투 안내 입력</option>${H.products.map(p => `<option value="${p.id}" ${med?.productId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select><p class="small-note">자동 안내는 위 3개 제품을 지원해요. 같은 이름도 함량·제형을 확인하세요.</p><div id="productPreview">${drugGuide(med || {})}</div><label for="medicineName">이름 또는 별칭</label><input id="medicineName" maxlength="80" required value="${esc(med?.name || '')}" placeholder="예: 저녁 약"><details class="settings"><summary>약 봉투·약사에게 확인한 식사 조건</summary><label for="fastBefore">식사 후 복용 전 공복 유지 <span class="optional">분 · 안내받은 경우만</span></label><input id="fastBefore" type="number" min="0" max="1440" step="1" value="${med?.fastBeforeMinutes ?? ''}" placeholder="확인되지 않으면 비워 두세요"><label for="fastAfter">복용 후 다음 식사까지 <span class="optional">분 · 안내받은 경우만</span></label><input id="fastAfter" type="number" min="0" max="1440" step="1" value="${med?.fastAfterMinutes ?? ''}" placeholder="예: 30"><label for="mealNote">함께 먹을 것·피할 것 등 안내 메모</label><input id="mealNote" maxlength="500" value="${esc(med?.mealNote || '')}" placeholder="약 봉투 또는 약사에게 들은 내용"></details><label class="check-label"><input id="dailyMedicine" type="checkbox" ${scheduled ? 'checked' : ''}>정한 시간에 홈에 표시</label><div id="medicineSchedule" ${scheduled ? '' : 'hidden'}><div id="timeInputs">${(med?.times?.length ? med.times : ['08:00']).map((time, i) => timeField(time, i)).join('')}</div><button type="button" class="text-link" id="moreTime">시간 추가</button><label class="check-label"><input id="notifyMedicine" type="checkbox" ${state.notifyMeds[med?.id] ? 'checked' : ''}>이 약의 알림 받기</label></div><p class="small-note">필요할 때만 먹는 약은 시간 표시를 끄세요. 복용 기록은 ＋에서 남길 수 있어요.</p>`;
+  }
+  function optionalMinutes(id) { const v = $(id).value; return v === '' ? null : Number(v); }
+  function cosmeticFields(item) {
+    return `<label for="cosmeticName">제품명</label><input id="cosmeticName" maxlength="100" required value="${esc(item?.name || '')}" placeholder="예: 데일리 선크림"><label for="cosmeticCategory">종류</label><select id="cosmeticCategory">${H.categories.map(c => `<option ${item?.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select><label for="cosmeticOpened">개봉일 <span class="optional">미개봉이면 비워 두세요</span></label><input id="cosmeticOpened" type="date" max="${C.day(new Date())}" value="${esc(item?.openedAt || '')}"><label for="cosmeticPao">제품에 표시된 개봉 후 사용기간</label><select id="cosmeticPao"><option value="">아직 확인하지 못했어요</option>${[3, 6, 9, 12, 18, 24, 36, ...([3,6,9,12,18,24,36].includes(Number(item?.paoMonths)) || !item?.paoMonths ? [] : [Number(item.paoMonths)])].sort((a,b) => a-b).map(n => `<option value="${n}" ${Number(item?.paoMonths) === n ? 'selected' : ''}>${n}M · 개봉 후 ${n}개월</option>`).join('')}</select><label for="cosmeticLabel">포장에 적힌 사용기한 <span class="optional">표시된 경우</span></label><input id="cosmeticLabel" type="date" value="${esc(item?.labelDate || '')}"><div id="cosmeticPreview" class="expiry-preview" role="status"></div><p class="small-note">종류만으로 기한을 정하지 않아요. 용기의 열린 뚜껑 표시(6M·12M 등)와 사용기한을 옮겨 주세요. 계산일은 사용 안전성을 보장하지 않아요. <a href="https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&amp;joBrNo=00&amp;joNo=0010&amp;lsiSeq=291337&amp;urlMode=lsScJoRltInfoR" target="_blank" rel="noopener noreferrer">제품 표시 기준</a></p><label for="cosmeticNote">메모 <span class="optional">선택</span></label><input id="cosmeticNote" maxlength="300" value="${esc(item?.note || '')}">`;
+  }
+  function cosmeticFromForm() { return { name: $('cosmeticName').value.trim(), category: $('cosmeticCategory').value, openedAt: $('cosmeticOpened').value, paoMonths: $('cosmeticPao').value ? Number($('cosmeticPao').value) : null, labelDate: $('cosmeticLabel').value, note: $('cosmeticNote').value.trim() }; }
+  function previewCosmetic() {
+    const e = H.cosmeticExpiry(cosmeticFromForm());
+    $('cosmeticPreview').textContent = e.due ? `관리 날짜 ${e.due} · ${e.basis}${e.days < 0 ? ' · 날짜 지남' : ` · ${e.days}일 남음`}` : '기한 미확인 · 표시된 기간과 날짜를 입력하면 계산돼요.';
+  }
+  function cosmeticStatus(item) { const e = H.cosmeticExpiry(item); return item.finishedAt ? '사용 완료' : !e.due ? '기한 미확인' : `${e.due} · ${e.days < 0 ? `${Math.abs(e.days)}일 지남` : e.days === 0 ? '오늘까지' : `${e.days}일 남음`}`; }
+  function renderCosmeticSummary() {
+    const items = (state.cosmetics || []).filter(x => !x.finishedAt && (H.cosmeticExpiry(x).days === null || H.cosmeticExpiry(x).days <= 30)).sort((a,b) => (H.cosmeticExpiry(a).due || '9999').localeCompare(H.cosmeticExpiry(b).due || '9999'));
+    $('cosmeticSummary').hidden = !items.length;
+    $('cosmeticSummary').innerHTML = items.slice(0, 3).map(x => row(esc(x.name), esc(cosmeticStatus(x)), `<button class="small-button" data-edit-cosmetic="${esc(x.id)}">보기</button>`)).join('');
+  }
+  function renderCosmetics() {
+    const items = state.cosmetics || [];
+    $('cosmeticItems').innerHTML = items.length ? items.map(x => row(esc(x.name), `${esc(x.category || x.cosmeticType || '화장품')} · ${esc(cosmeticStatus(x))}${x.legacy ? ' · 이전 등록값' : ''}`, `<button class="small-button" data-edit-cosmetic="${esc(x.id)}">수정</button><button class="small-button" data-finish-cosmetic="${esc(x.id)}">${x.finishedAt ? '다시 사용' : '다 썼어요'}</button>`)).join('') : '<p class="small-note">등록한 화장품이 없어요.</p>';
+  }
+  function renderQuickEntries() {
+    $('quickSection').hidden = false; $('quickExpenseForm').hidden = false;
+    const today = C.day(new Date()), yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const timers = H.laundrySuggestions(state.timers);
+    const laundry = timers.map(t => { const running = state.timers.some(x => x.minutes === t.minutes && ['running','ready'].includes(C.timerStatus(x).state)); return `<button type="button" class="quick-entry" data-quick-laundry="${t.minutes}" ${running ? 'disabled' : ''}><strong>일반 빨래 ${t.minutes}분</strong><span>${running ? '홈에서 진행 중' : C.day(t.at) === C.day(yesterday) ? '어제 사용 · 바로 시작' : t.count ? '자주 사용 · 바로 시작' : '바로 시작'}</span></button>`; }).join('');
+    const doseButtons = C.doses(state.medicines, state.checks).filter(x => !x.checkedAt).slice(0, 3).map(d => `<button type="button" class="quick-entry" data-quick-dose="${esc(d.key)}"><strong>${esc(d.med.name)} · 기록</strong><span>${lastRecordText(d.med.id)}</span></button>`).join('');
+    const asNeeded = state.medicines.filter(m => !m.times?.length).slice(0, 3).map(m => `<button type="button" class="quick-entry" data-quick-dose="${esc(m.id)}|${today}|필요시-${Date.now()}"><strong>${esc(m.name)} · 기록</strong><span>${lastRecordText(m.id)}</span></button>`).join('');
+    const unique = [...state.expenses].sort((a,b) => String(b.at).localeCompare(String(a.at))).filter((x,i,all) => all.findIndex(y => y.amount === x.amount && y.note === x.note) === i).slice(0, 2);
+    $('quickEntries').innerHTML = laundry + doseButtons + asNeeded + unique.map(x => `<button type="button" class="quick-entry" data-quick-expense="${esc(x.id)}"><strong>${esc(x.note || '지출')} · ${money(x.amount)}원</strong><span>금액 확인 후 저장</span></button>`).join('');
+    $('quickAmount').value = '';
+  }
+  function quickLaundry(minutes) {
+    if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440 || state.timers.some(x => x.minutes === minutes && ['running','ready'].includes(C.timerStatus(x).state))) return;
+    const recent = H.laundrySuggestions(state.timers).find(x => x.minutes === minutes), now = Date.now();
+    const notify = Boolean(recent?.notify && 'Notification' in window && Notification.permission === 'granted');
+    if (persist({ ...state, timers: [...state.timers, { id: uid(), minutes, startedAt: new Date(now).toISOString(), endsAt: now + minutes * 60000, hungAt: null, notify }] })) { go('today'); announce('빨래 타이머를 시작했어요.'); }
+  }
+  $('quickExpenseForm').addEventListener('submit', event => {
+    event.preventDefault(); const amount = C.parseAmount($('quickAmount').value); if (!amount) { announce('1원 이상 숫자로 입력해 주세요.'); return; }
+    if (persist({ ...state, expenses: [...state.expenses, { id: uid(), amount, note: '', at: new Date().toISOString() }] })) { go('today'); announce('지출을 저장했어요.'); }
+  });
+  $('newCosmetic').addEventListener('click', () => { go('add', false); chooseKind('cosmetic'); });
+  $('formFields').addEventListener('input', () => { if (kind === 'cosmetic') previewCosmetic(); });
+  $('formFields').addEventListener('change', event => {
+    if (kind === 'cosmetic') previewCosmetic();
+    if (event.target.id === 'dailyMedicine') $('medicineSchedule').hidden = !event.target.checked;
+    if (event.target.id === 'medicineProduct') {
+      const product = H.products.find(p => p.id === event.target.value);
+      $('productPreview').innerHTML = drugGuide({ productId: product?.id });
+      $('productPreview').querySelector('details')?.setAttribute('open', '');
+      if (product && !editingId) { $('medicineName').value = product.name; $('dailyMedicine').checked = false; $('medicineSchedule').hidden = true; }
+    }
+  });
+  function timeField(time = '', index = 0) { return `<div class="time-entry"><input type="time" name="medicineTime" aria-label="복용 시간 ${index + 1}" value="${esc(time)}"><button type="button" class="small-button" data-remove-time aria-label="복용 시간 삭제">삭제</button></div>`; }
   async function permission(wanted) {
     if (!wanted) return false;
     if (!('Notification' in window)) { announce('이 브라우저는 웹 알림을 지원하지 않아요.'); return false; }
@@ -161,14 +236,23 @@
         next.expenses = old ? next.expenses.map(x => x.id === old.id ? item : x) : [...next.expenses, item];
       }
       if (kind === 'medicine') {
-        const name = $('medicineName').value.trim(), times = [...new Set([...document.querySelectorAll('[name="medicineTime"]')].map(x => x.value).filter(Boolean))].sort();
-        if (!name || !times.length) { announce('이름과 시간을 입력해 주세요.'); return; }
-        const notify = await permission($('notifyMedicine').checked); next = structuredClone(state);
+        const name = $('medicineName').value.trim(), scheduled = $('dailyMedicine').checked;
+        const times = scheduled ? [...new Set([...document.querySelectorAll('[name="medicineTime"]')].map(x => x.value).filter(Boolean))].sort() : [];
+        if (!name || (scheduled && !times.length)) { announce('이름과 표시할 시간을 확인해 주세요.'); return; }
+        const notify = await permission(scheduled && $('notifyMedicine').checked); next = structuredClone(state);
         const old = next.medicines.find(x => x.id === editingId);
-        const med = { ...(old || { days: [0, 1, 2, 3, 4, 5, 6], startDate: '', endDate: '' }), id: old?.id || uid(), name, times };
+        const med = { ...(old || { days: [0, 1, 2, 3, 4, 5, 6], startDate: '', endDate: '' }), id: old?.id || uid(), name, times,
+          productId: $('medicineProduct').value, mealNote: $('mealNote').value.trim(), fastBeforeMinutes: optionalMinutes('fastBefore'), fastAfterMinutes: optionalMinutes('fastAfter') };
         next.medicines = old ? next.medicines.map(x => x.id === old.id ? med : x) : [...next.medicines, med]; next.notifyMeds[med.id] = notify;
       }
-      if (persist(next)) { go(kind === 'expense' && editingId ? 'history' : 'today'); announce('저장했어요.'); }
+      if (kind === 'cosmetic') {
+        const item = cosmeticFromForm(), old = (next.cosmetics || []).find(x => x.id === editingId);
+        if (!item.name || (item.openedAt && !H.date(item.openedAt)) || (item.labelDate && !H.date(item.labelDate))) { announce('제품명과 날짜를 확인해 주세요.'); return; }
+        if (item.openedAt && item.openedAt > C.day(new Date())) { announce('개봉일은 오늘까지 입력할 수 있어요.'); return; }
+        const saved = { ...(old || {}), ...item, id: old?.id || uid() };
+        next.cosmetics = old ? next.cosmetics.map(x => x.id === old.id ? saved : x) : [...(next.cosmetics || []), saved];
+      }
+      if (persist(next)) { go(kind === 'cosmetic' || (kind === 'expense' && editingId) ? 'history' : 'today'); if (kind === 'cosmetic') $('cosmeticSettings').open = true; announce('저장했어요.'); }
     } finally { button.disabled = false; }
   }
   function redraw() { if (screen === 'today') renderToday(); if (screen === 'history') renderHistory(); }
@@ -199,7 +283,7 @@
     const now = new Date(), date = C.day(now); let changed = date !== shownDate;
     document.querySelectorAll('[data-timer-text]').forEach(el => {
       const timer = state.timers.find(x => x.id === el.dataset.timerText); if (!timer) return;
-      const status = C.timerStatus(timer); const text = status.state === 'ready' ? '빨래 · 설정 시간 끝' : `빨래 · ${status.minutes}분 남음`;
+      const status = C.timerStatus(timer); const text = H.laundryTitle(timer, date);
       if (status.state === 'ready' && el.textContent !== text) changed = true;
       else el.textContent = text;
     });
@@ -228,6 +312,12 @@
   $('main').addEventListener('click', event => {
     const b = event.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-open-expenses')) { filter = 'expense'; go('history'); }
+    if (b.dataset.quickLaundry) quickLaundry(Number(b.dataset.quickLaundry));
+    if (b.dataset.quickDose) { if (b.dataset.quickDose.split('|')[1] !== C.day(new Date())) { renderQuickEntries(); announce('날짜가 바뀌어 오늘 항목으로 갱신했어요.'); return; } changeDose(b.dataset.quickDose); go('today'); }
+    if (b.dataset.quickExpense) { const item = state.expenses.find(x => x.id === b.dataset.quickExpense); if (item) { chooseKind('expense'); $('amount').value = item.amount; $('expenseNote').value = item.note || ''; } }
+    if (b.dataset.editCosmetic) { const id = b.dataset.editCosmetic; go('add', false); chooseKind('cosmetic', id); }
+    if (b.dataset.finishCosmetic) { const id = b.dataset.finishCosmetic, old = state.cosmetics.find(x => x.id === id); if (old && persist({ ...state, cosmetics: state.cosmetics.map(x => x.id === id ? { ...x, finishedAt: old.finishedAt ? null : new Date().toISOString() } : x) })) { redraw(); announce(old.finishedAt ? '다시 사용 중으로 바꿨어요.' : '사용 완료로 기록했어요.'); } }
+    if (b.dataset.editMedCare) { const id = b.dataset.editMedCare; go('add', false); chooseKind('medicine', id); }
     if (b.dataset.check) changeDose(b.dataset.check);
     if (b.dataset.undoDose) changeDose(b.dataset.undoDose, true);
     if (b.dataset.hang) changeTimer(b.dataset.hang, 'hungAt', new Date().toISOString(), '널었다고 기록했어요.');

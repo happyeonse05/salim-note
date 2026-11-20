@@ -8,6 +8,7 @@
   <title>오늘 살림</title>
   <link rel="stylesheet" href="styles.css">
   <script src="core.js" defer></script>
+  <script src="care-core.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -18,14 +19,17 @@
       <section id="todayView" aria-labelledby="todayTitle">
         <div class="page-head"><p class="eyebrow">오늘</p><h1 id="todayTitle"></h1><p class="intro" id="todayIntro"></p></div>
         <section aria-label="챙길 일" id="activeRows" class="ruled-list"></section>
+        <section id="cosmeticSummary" class="ruled-list" aria-label="화장품 사용기한" hidden></section>
         <section aria-label="이번 주 지출" id="weeklySummary"></section>
         <section id="completedSection" hidden><h2 class="section-label">오늘 남긴 기록</h2><div id="completedRows" class="ruled-list"></div></section>
-        <p id="emptyToday" class="quiet-empty" hidden>아직 기록이 없어요.<br>아래의 ‘＋ 기록’에서 시작하세요.</p>
+        <p id="emptyToday" class="quiet-empty" hidden>지금 챙길 일이 없어요.<br>필요하면 아래 ‘＋ 기록’에서 시작하세요.</p>
       </section>
       <section id="addView" aria-labelledby="addTitle" hidden>
         <div class="page-head"><p class="eyebrow">기록 추가</p><h1 id="addTitle" tabindex="-1">무엇을 기록할까요?</h1><p class="intro">필요한 것만 짧게 남겨요.</p></div>
+        <section id="quickSection" aria-label="최근·자주 쓰는 항목"><div id="quickEntries" class="quick-entries"></div></section>
+        <form id="quickExpenseForm" class="quick-expense"><label for="quickAmount">지출 금액만 기록</label><div class="inline-form"><input id="quickAmount" inputmode="numeric" maxlength="11" placeholder="4,500" aria-label="빠른 지출 금액" required><span>원</span><button type="submit" class="solid">저장</button></div></form>
         <div class="type-picker" role="group" aria-label="기록 종류">
-          <button type="button" data-kind="laundry">빨래</button><button type="button" data-kind="medicine">약</button><button type="button" data-kind="expense">지출</button>
+          <button type="button" data-kind="laundry">빨래</button><button type="button" data-kind="medicine">약</button><button type="button" data-kind="expense">지출</button><button type="button" data-kind="cosmetic">화장품</button>
         </div>
         <form id="entryForm" hidden><div id="formFields"></div><div class="form-actions"><button type="button" class="plain" id="cancelEntry">취소</button><button type="submit" class="solid" id="saveEntry">저장</button></div></form>
       </section>
@@ -34,6 +38,7 @@
         <div class="history-filters" role="group" aria-label="기록 필터"><button data-filter="all" aria-pressed="true">전체</button><button data-filter="expense">지출</button><button data-filter="medicine">약</button><button data-filter="laundry">빨래</button></div>
         <div id="historyWeek"></div><div id="historyRows"></div>
         <details class="settings"><summary>등록한 약과 알림</summary><div id="medicineSettings"></div><button class="text-link" id="newMedicine">약 등록</button><p class="small-note">복용 기록용입니다. 복용 방법은 처방과 제품 설명을 따르세요.<br>웹 알림은 앱이 열려 있을 때만 받을 수 있어요. 알림에는 약 이름을 표시하지 않아요.</p></details>
+        <details id="cosmeticSettings" class="settings"><summary>화장품과 사용기한</summary><div id="cosmeticItems"></div><button class="text-link" id="newCosmetic">화장품 등록</button></details>
         <details class="settings"><summary>주간 예산 <span class="optional">선택</span></summary><form id="budgetForm"><label for="budgetAmount">매주 쓸 금액</label><div class="inline-form"><input id="budgetAmount" inputmode="numeric" type="text" maxlength="11" placeholder="설정하지 않아도 돼요"><span>원</span><button class="plain" type="submit">저장</button></div><p class="small-note">월요일부터 일요일까지예요. 비워서 저장하면 예산 표시를 끕니다.</p></form></details>
         <details id="previousSection" class="settings" hidden><summary>이전 앱에 남긴 기록</summary><div id="previousRows"></div><p class="small-note">원래 저장 데이터는 그대로 보관해요. 금액이 있던 옷 구매 기록은 지출에도 이어서 표시합니다.</p></details>
         <div class="backup-tools"><button id="backupButton" class="text-link">내 기록 백업</button><span>계정 없이 이 브라우저에 저장돼요.</span></div>
