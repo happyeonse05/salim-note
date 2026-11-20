@@ -1222,7 +1222,7 @@
           deadline = `<div class="record-deadline"><small>${item.kind === 'cosmetic' ? '권장 사용기한' : (item.dateType || '기한')}</small>${formatDate(due, false)}<br><span class="deadline ${d.className}">${d.text}</span></div>`;
         } else if (item.amount) details.push(`${Number(item.amount).toLocaleString('ko-KR')}원`);
         if (item.note) details.push(item.note);
-        const thumbnail = item.photo ? `<button class="record-photo" data-photo="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 사진 보기"><img src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} 사진"></button>` : `<div class="record-icon">${icons[item.kind]}</div>`;
+        const thumbnail = item.photo ? `<button class="record-photo" data-photo="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 사진 보기"><img src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} 사진" loading="lazy" decoding="async"></button>` : `<div class="record-icon">${icons[item.kind]}</div>`;
         return `<article class="record-card">${thumbnail}<div class="record-copy"><div class="record-title">${escapeHtml(item.name)}</div><div class="record-detail">${details.map(x => `<span>${escapeHtml(x)}</span>`).join('<span>·</span>')}</div></div><div class="record-right">${deadline}<button class="edit-button" data-edit="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 수정" title="수정">✎</button><button class="delete-button" data-delete="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 삭제" title="삭제">×</button></div></article>`;
       }
       function updateNav() {
