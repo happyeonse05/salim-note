@@ -1116,6 +1116,18 @@
         if (currentView === 'clothes') return sortedRecords(records.filter(x => x.kind === 'clothes'));
         return sortedRecords();
       }
+      function syncDeadlineSortOption(select) {
+        // '기한 임박순'은 사용기한 화면에서만 쓰이므로, 다른 화면에서는 옵션을 빼고 최근순으로 되돌림
+        const option = select.querySelector('option[value="deadline"]');
+        if (currentView === 'expiry' && !option) {
+          const added = document.createElement('option');
+          added.value = 'deadline'; added.textContent = '기한 임박순';
+          select.append(added);
+        } else if (currentView !== 'expiry' && option) {
+          option.remove();
+        }
+        if (currentView !== 'expiry' && select.value === 'deadline') select.value = 'newest';
+      }
       function renderList() {
         const isMedicationView = currentView === 'medications';
         const isRoutineView = currentView === 'routines';
@@ -1146,8 +1158,12 @@
           });
         }
         const q = document.getElementById('searchInput').value.trim().toLowerCase();
+        const sortSelect = document.getElementById('sortSelect');
+        syncDeadlineSortOption(sortSelect);
         let items = viewItems().filter(item => !q || [item.name, item.note, labels[item.kind]].filter(Boolean).join(' ').toLowerCase().includes(q));
-        if (document.getElementById('sortSelect').value === 'oldest') items = items.reverse();
+        if (sortSelect.value === 'oldest') items = items.reverse();
+        // 사용기한 화면에서만 기한이 가까운 순서로 정렬할 수 있음 (기한이 없는 항목은 맨 뒤)
+        else if (sortSelect.value === 'deadline') items = [...items].sort((a, b) => (safeDeadline(a) || '9999-12-31').localeCompare(safeDeadline(b) || '9999-12-31'));
         // 캡션에 현재 보이는 건수를 붙이고, 옷 구매 탭에서는 검색 결과의 합계도 함께 보여줌
         const baseCaption = titleMap[currentView]?.[1] || '';
         const countText = `${items.length}건`;
