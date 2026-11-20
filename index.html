@@ -1215,7 +1215,8 @@
           const emptyBody = q ? '다른 검색어를 입력하세요.' : filtered ? '다른 기간 필터를 선택해 보세요.' : viewEmpty[1];
           // 검색 결과가 없을 때는 한 번에 검색어를 지울 수 있는 버튼을 함께 보여줌
           const clearButton = q ? '<button class="secondary-button" type="button" data-clear-search>검색 지우기</button>' : '';
-          list.innerHTML = `<div class="panel empty-state"><strong>${emptyTitle}</strong><span>${emptyBody}</span>${clearButton}</div>`;
+          // 검색 결과가 없을 때만 스크린리더가 안내 문구를 바로 읽도록 status 역할을 줌
+          list.innerHTML = `<div class="panel empty-state"${q ? ' role="status"' : ''}><strong>${emptyTitle}</strong><span>${emptyBody}</span>${clearButton}</div>`;
           return;
         }
         list.innerHTML = items.map(item => recordCard(item)).join('');
