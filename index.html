@@ -1430,9 +1430,10 @@
           duplicate?.focus();
           return;
         }
-        if (!times.length) { showToast('복용 시간을 한 개 이상 입력해 주세요.'); return; }
-        if (!days.length) { showToast('복용 요일을 선택해 주세요.'); return; }
-        if (startDate && endDate && endDate < startDate) { showToast('종료일은 시작일 이후로 설정해 주세요.'); return; }
+        // 각 검사 실패 시 메시지와 함께 고쳐야 할 입력란으로 포커스를 옮김
+        if (!times.length) { showToast('복용 시간을 한 개 이상 입력해 주세요.'); document.getElementById('addMedTime').focus(); return; }
+        if (!days.length) { showToast('복용 요일을 선택해 주세요.'); document.querySelector('#dayPicker input[name="medDay"]')?.focus(); return; }
+        if (startDate && endDate && endDate < startDate) { showToast('종료일은 시작일 이후로 설정해 주세요.'); document.getElementById('medEndDate').focus(); return; }
         const old = medicines.find(m => m.id === editingMedicineId);
         const med = { id: old?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), name: medName, dose: String(data.get('dose') || '').trim(), times, days, startDate, endDate };
         medicines = old ? medicines.map(m => m.id === old.id ? med : m) : [...medicines, med];
