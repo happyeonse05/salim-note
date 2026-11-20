@@ -120,6 +120,8 @@
     .record-copy { min-width: 0; flex: 1; }
     .record-title { overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
     .record-detail { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; color: var(--muted); font-size: 9px; }
+    /* 긴 메모는 두 줄까지만 보여주고, 전체 내용은 마우스를 올리면 볼 수 있게 함 */
+    .record-note { max-width: 100%; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
     .record-right { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; }
     .record-deadline { color: var(--green); font-size: 10px; font-weight: 750; text-align: right; }
     .record-deadline small { display: block; margin-bottom: 3px; color: #9ba097; font-size: 8px; font-weight: 500; }
@@ -1221,9 +1223,11 @@
           details.push(secondary);
           deadline = `<div class="record-deadline"><small>${item.kind === 'cosmetic' ? '권장 사용기한' : (item.dateType || '기한')}</small>${formatDate(due, false)}<br><span class="deadline ${d.className}">${d.text}</span></div>`;
         } else if (item.amount) details.push(`${Number(item.amount).toLocaleString('ko-KR')}원`);
-        if (item.note) details.push(item.note);
+        // 메모는 줄 수를 제한하기 위해 별도 요소로 붙임
+        const note = item.note ? `<span class="record-note" title="${escapeHtml(item.note)}">${escapeHtml(item.note)}</span>` : '';
+        const detailHtml = details.map(x => `<span>${escapeHtml(x)}</span>`).join('<span>·</span>') + (note ? `<span>·</span>${note}` : '');
         const thumbnail = item.photo ? `<button class="record-photo" data-photo="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 사진 보기"><img src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} 사진" loading="lazy" decoding="async"></button>` : `<div class="record-icon">${icons[item.kind]}</div>`;
-        return `<article class="record-card">${thumbnail}<div class="record-copy"><div class="record-title">${escapeHtml(item.name)}</div><div class="record-detail">${details.map(x => `<span>${escapeHtml(x)}</span>`).join('<span>·</span>')}</div></div><div class="record-right">${deadline}<button class="edit-button" data-edit="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 수정" title="수정">✎</button><button class="delete-button" data-delete="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 삭제" title="삭제">×</button></div></article>`;
+        return `<article class="record-card">${thumbnail}<div class="record-copy"><div class="record-title" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="record-detail">${detailHtml}</div></div><div class="record-right">${deadline}<button class="edit-button" data-edit="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 수정" title="수정">✎</button><button class="delete-button" data-delete="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 삭제" title="삭제">×</button></div></article>`;
       }
       function updateNav() {
         document.querySelectorAll('.nav-item').forEach(button => {
