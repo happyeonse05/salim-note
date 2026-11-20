@@ -1705,8 +1705,15 @@
       document.getElementById('medForm').addEventListener('submit', saveMedication);
       document.getElementById('addMedTime').addEventListener('click', () => {
         const times = [...document.querySelectorAll('input[name="medTime"]')].map(input => input.value).filter(Boolean);
-        const nextTime = ['20:00', '12:00', '18:00', '09:00'].find(time => !times.includes(time)) || '12:00';
-        times.push(nextTime); renderMedTimeInputs(times);
+        let nextTime = ['20:00', '12:00', '18:00', '09:00'].find(time => !times.includes(time));
+        // 기본 제안 시간이 모두 쓰였으면 아직 없는 정각을 찾아, 같은 시간이 두 번 생기지 않게 함
+        for (let hour = 6; !nextTime && hour <= 23; hour++) {
+          const candidate = `${String(hour).padStart(2, '0')}:00`;
+          if (!times.includes(candidate)) nextTime = candidate;
+        }
+        times.push(nextTime || '12:00'); renderMedTimeInputs(times);
+        // 새로 추가한 시간 입력란으로 포커스를 옮겨 바로 수정할 수 있게 함
+        document.querySelectorAll('input[name="medTime"]')[times.length - 1]?.focus();
       });
       document.getElementById('medTimes').addEventListener('click', e => {
         if (!e.target.closest('[data-remove-time]')) return;
