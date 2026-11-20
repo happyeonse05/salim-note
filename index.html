@@ -591,7 +591,7 @@
             <button class="primary-button" id="routineSubmitButton" type="submit"><span class="plus">＋</span> 일정 등록</button>
           </form>
         </section>
-        <section class="panel routine-list-panel"><div class="panel-heading"><div><h2 class="panel-title">등록한 일정</h2><p class="panel-caption">완료하면 선택한 주기만큼 다음 날짜가 자동으로 바뀝니다.</p></div></div><div class="routine-list" id="routineList"></div></section>
+        <section class="panel routine-list-panel"><div class="panel-heading"><div><h2 class="panel-title">등록한 일정</h2><p class="panel-caption">완료하면 선택한 주기만큼 다음 날짜가 자동으로 바뀝니다.</p></div><span class="shopping-count" id="routineCount">0개</span></div><div class="routine-list" id="routineList"></div></section>
         <p class="calendar-note">캘린더 내보내기는 반복 일정을 .ics 파일로 저장합니다. 파일을 Google Calendar 또는 Apple 캘린더에 가져오면 기기 캘린더 알림을 사용할 수 있어요.</p>
       </section>
     </main>
@@ -936,6 +936,7 @@
         const sorted = [...routines].sort((a,b) => (a.nextDate || '').localeCompare(b.nextDate || ''));
         const dueCount = routines.filter(item => daysUntil(item.nextDate) <= 0).length;
         document.getElementById('navRoutineCount').textContent = dueCount || '';
+        document.getElementById('routineCount').textContent = `${routines.length}개`;
         target.innerHTML = sorted.length ? sorted.map(item => {
           const days = daysUntil(item.nextDate);
           const state = days < 0 ? 'overdue' : days === 0 ? 'urgent' : '';
