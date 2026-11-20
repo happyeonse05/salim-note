@@ -1280,7 +1280,7 @@
         const preview = document.getElementById('calcPreview');
         preview.hidden = currentType !== 'cosmetic';
         const current = editingItem || {};
-        const commonName = field(currentType === 'food' || currentType === 'cosmetic' ? '제품명' : '기록 이름', 'name', 'text', current.name || '', { full: true, required: true, placeholder: ({ laundry: '예: 수건·흰옷 세탁', shopping: '예: 주말 장보기', clothes: '예: 네이비 가디건', food: '예: 우유 900ml', cosmetic: '예: 수분 세럼' })[currentType] });
+        const commonName = field(currentType === 'food' || currentType === 'cosmetic' ? '제품명' : '기록 이름', 'name', 'text', current.name || '', { full: true, required: true, attrs: 'maxlength="80"', placeholder: ({ laundry: '예: 수건·흰옷 세탁', shopping: '예: 주말 장보기', clothes: '예: 네이비 가디건', food: '예: 우유 900ml', cosmetic: '예: 수분 세럼' })[currentType] });
         if (currentType === 'laundry') fields.innerHTML = commonName + field('빨래한 날짜', 'date', 'date', current.date || today, { required: true }) + field('메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '세탁 코스 메모' });
         if (currentType === 'shopping') fields.innerHTML = commonName + field('장 본 날짜', 'date', 'date', current.date || today, { required: true }) + field('구매한 것', 'note', 'textarea', current.note || '', { full: true, placeholder: '우유, 달걀, 채소' });
         if (currentType === 'clothes') fields.innerHTML = commonName + field('구매한 날짜', 'date', 'date', current.date || today, { required: true }) + field('가격', 'amount', 'number', current.amount || '', { min: '0', hint: '선택', preview: true }) + field('메모', 'note', 'textarea', current.note || '', { full: true, placeholder: '브랜드, 사이즈' });
