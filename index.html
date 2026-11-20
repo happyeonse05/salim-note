@@ -559,7 +559,7 @@
           <button class="filter-chip" type="button" data-expiry-filter="week">7일 이내</button>
           <button class="filter-chip" type="button" data-expiry-filter="later">그 이후</button>
         </div>
-        <div class="list-toolbar"><div class="search-wrap"><span>⌕</span><input class="search-input" type="search" id="searchInput" placeholder="이름이나 메모 검색" aria-label="기록 검색"></div><select class="sort-select" id="sortSelect" aria-label="정렬"><option value="newest">최근 기록순</option><option value="oldest">오래된 순</option></select></div>
+        <div class="list-toolbar"><div class="search-wrap"><span>⌕</span><input class="search-input" type="search" id="searchInput" placeholder="이름이나 메모 검색" aria-label="기록 검색" title="/ 키를 누르면 바로 검색할 수 있어요"></div><select class="sort-select" id="sortSelect" aria-label="정렬"><option value="newest">최근 기록순</option><option value="oldest">오래된 순</option></select></div>
         <section class="panel shopping-list-panel" id="shoppingListPanel">
           <div class="panel-heading"><div><h2 class="panel-title">살 것</h2><p class="panel-caption">체크한 항목은 장보기 기록으로 저장할 수 있어요.</p></div><span class="shopping-count" id="shoppingCount">0개</span></div>
           <div class="shopping-entry"><input id="shoppingItemInput" type="text" maxlength="100" placeholder="예: 우유, 달걀" aria-label="장보기 품목"><button class="primary-button" id="addShoppingItem" type="button">추가</button></div>
@@ -1734,6 +1734,16 @@
         const inside = dialog.contains(document.activeElement);
         if (e.shiftKey && (!inside || document.activeElement === first)) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && (!inside || document.activeElement === last)) { e.preventDefault(); first.focus(); }
+      });
+      document.addEventListener('keydown', e => {
+        // "/" jumps to the record search from anywhere on the list screen, unless the user is typing or a dialog is open.
+        // "/" 키로 기록 검색창에 바로 이동 (입력 중이거나 대화상자가 열려 있으면 무시)
+        if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+        if (document.querySelector('.modal-backdrop.open, .photo-viewer.open')) return;
+        const search = document.getElementById('searchInput');
+        if (!search || !search.getClientRects().length) return;
+        e.preventDefault(); search.focus(); search.select();
       });
       document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkNotifications(); renderMedications(); } });
       setInterval(() => { checkNotifications(); renderMedications(); }, 60 * 1000);
