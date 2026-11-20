@@ -195,7 +195,7 @@
     if (persist({ ...state, timers: [...state.timers, { id: uid(), minutes, startedAt: new Date(now).toISOString(), endsAt: now + minutes * 60000, hungAt: null, notify }] })) { go('today'); announce('빨래 타이머를 시작했어요.'); }
   }
   $('quickExpenseForm').addEventListener('submit', event => {
-    event.preventDefault(); const amount = C.parseAmount($('quickAmount').value); if (!amount) { announce('1원 이상 숫자로 입력해 주세요.'); return; }
+    event.preventDefault(); const amount = C.parseAmount($('quickAmount').value); if (!amount) { announce('1원 이상 숫자로 입력해 주세요.'); $('quickAmount').focus(); return; }
     if (persist({ ...state, expenses: [...state.expenses, { id: uid(), amount, note: '', at: new Date().toISOString() }] })) { go('today'); announce('지출을 저장했어요.'); }
   });
   $('newCosmetic').addEventListener('click', () => { go('add', false); chooseKind('cosmetic'); });
