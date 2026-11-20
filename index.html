@@ -612,7 +612,7 @@
       </div>
       <form id="recordForm">
         <div class="form-body"><div class="form-grid" id="formFields"></div><div class="calc-preview" id="calcPreview" hidden></div></div>
-        <div class="form-footer"><button type="button" class="secondary-button" id="cancelModal">취소</button><button type="submit" class="primary-button">기록 저장</button></div>
+        <div class="form-footer"><button type="button" class="secondary-button" id="cancelModal">취소</button><button type="submit" class="primary-button" title="Ctrl+Enter (⌘+Enter)로도 저장할 수 있어요">기록 저장</button></div>
       </form>
     </div>
   </div>
@@ -1825,6 +1825,17 @@
         const inside = dialog.contains(document.activeElement);
         if (e.shiftKey && (!inside || document.activeElement === first)) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && (!inside || document.activeElement === last)) { e.preventDefault(); first.focus(); }
+      });
+      document.addEventListener('keydown', e => {
+        // Ctrl+Enter (macOS ⌘+Enter) saves the open record or medicine form. Form validation still applies on submit.
+        // 기록·약 입력창이 열려 있을 때 Ctrl+Enter(⌘+Enter)로 바로 저장 (입력값 검사는 폼 제출 시 그대로 적용됨)
+        if (e.key !== 'Enter' || !(e.ctrlKey || e.metaKey) || e.altKey) return;
+        if (document.getElementById('confirmBackdrop').classList.contains('open')) return;
+        const openForm = document.getElementById('medModalBackdrop').classList.contains('open') ? 'medForm'
+          : document.getElementById('modalBackdrop').classList.contains('open') ? 'recordForm' : null;
+        if (!openForm) return;
+        e.preventDefault();
+        document.getElementById(openForm).requestSubmit();
       });
       document.addEventListener('keydown', e => {
         // "/" jumps to the record search from anywhere on the list screen, unless the user is typing or a dialog is open.
