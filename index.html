@@ -685,16 +685,16 @@
       </header>
 
       <section class="dashboard" id="dashboard">
-        <div class="dashboard-summary"><div class="summary-copy"><span class="summary-date" id="dashboardToday"></span><h2>오늘 챙길 살림</h2><p id="dashboardSummaryText">복용 일정과 사용기한을 확인하세요.</p></div><img class="summary-basket" src="assets/salim-basket-v1-web.png" alt="" width="240" height="220"></div>
+        <div class="dashboard-summary"><div class="summary-copy"><span class="summary-date" id="dashboardToday"></span><h2>오늘 챙길 살림</h2><p id="dashboardSummaryText">복용 일정과 사용기한을 확인하세요.</p></div><img class="summary-basket" src="assets/salim-cute-basket-v1-web.png" alt="" width="240" height="220"></div>
         <section class="panel quick-panel">
           <div class="panel-heading"><div><h2 class="panel-title">무엇을 하실까요?</h2><p class="panel-caption">그림을 눌러 시작하세요.</p></div></div>
           <div class="quick-actions">
-            <button class="quick-action category-card" data-open-view="shopping"><span class="category-art"><img src="assets/salim-basket-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">장바구니</span><span class="category-caption">살 물건 적기</span></button>
-            <button class="quick-action category-card" data-add="laundry"><span class="category-art"><img src="assets/salim-laundry-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">빨래 기록</span><span class="category-caption">세탁 날짜 남기기</span></button>
-            <button class="quick-action category-card" data-open-view="medications"><span class="category-art"><img src="assets/salim-medicine-optimized.png" alt="" width="144" height="112"></span><span class="category-title">복용 체크</span><span class="category-caption">오늘 복용 확인하기</span></button>
-            <button class="quick-action category-card" data-open-view="expiry"><span class="category-art"><img src="assets/salim-expiry-optimized.png" alt="" width="144" height="112"></span><span class="category-title">사용기한</span><span class="category-caption">식품·화장품 기한</span></button>
-            <button class="quick-action category-card" data-add="clothes"><span class="category-art"><img src="assets/salim-clothes-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">옷 구매</span><span class="category-caption">산 옷 기록하기</span></button>
-            <button class="quick-action category-card" data-open-view="routines"><span class="category-art"><img src="assets/salim-empty-optimized.png" alt="" width="144" height="112"></span><span class="category-title">반복 집안일</span><span class="category-caption">청소·교체 일정</span></button>
+            <button class="quick-action category-card" data-open-view="shopping"><span class="category-art"><img src="assets/salim-cute-basket-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">장바구니</span><span class="category-caption">살 물건 적기</span></button>
+            <button class="quick-action category-card" data-add="laundry"><span class="category-art"><img src="assets/salim-cute-laundry-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">빨래 기록</span><span class="category-caption">세탁 날짜 남기기</span></button>
+            <button class="quick-action category-card" data-open-view="medications"><span class="category-art"><img src="assets/salim-cute-medicine-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">복용 체크</span><span class="category-caption">오늘 복용 확인하기</span></button>
+            <button class="quick-action category-card" data-open-view="expiry"><span class="category-art"><img src="assets/salim-cute-expiry-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">사용기한</span><span class="category-caption">식품·화장품 기한</span></button>
+            <button class="quick-action category-card" data-add="clothes"><span class="category-art"><img src="assets/salim-cute-clothes-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">옷 구매</span><span class="category-caption">산 옷 기록하기</span></button>
+            <button class="quick-action category-card" data-open-view="routines"><span class="category-art"><img src="assets/salim-cute-chores-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">반복 집안일</span><span class="category-caption">청소·교체 일정</span></button>
           </div>
         </section>
         <div class="stat-grid">
@@ -933,7 +933,7 @@
         const doses = todayDoses();
         if (!doses.length) {
           container.innerHTML = compact
-            ? `<div class="empty-state dose-empty"><div class="dose-empty-copy"><strong>오늘 복용 일정이 없어요</strong><span>약 관리에서 약과 시간을 추가하면 이곳에서 확인할 수 있어요.</span></div><img src="assets/salim-medicine-optimized.png" alt="" aria-hidden="true"></div>`
+            ? `<div class="empty-state dose-empty"><div class="dose-empty-copy"><strong>오늘 복용 일정이 없어요</strong><span>약 관리에서 약과 시간을 추가하면 이곳에서 확인할 수 있어요.</span></div><img src="assets/salim-cute-medicine-v1-web.png" alt="" aria-hidden="true"></div>`
             : `<div class="empty-state"><strong>오늘 등록된 복용 일정이 없습니다</strong><span>약 관리에서 약과 시간을 추가하세요.</span></div>`;
           return;
         }
@@ -1069,7 +1069,7 @@
         document.getElementById('shoppingCount').textContent = `${shoppingList.length}개`;
         document.getElementById('shoppingCheckedCount').textContent = `체크한 항목 ${checked.length}개`;
         document.getElementById('saveShoppingPurchase').disabled = checked.length === 0;
-        target.innerHTML = shoppingList.length ? shoppingList.map(item => `<div class="shopping-item ${item.done ? 'checked' : ''}"><input type="checkbox" data-shopping-toggle="${escapeHtml(item.id)}" ${item.done ? 'checked' : ''} aria-label="${escapeHtml(item.name)} 구매 여부"><span class="shopping-item-name">${escapeHtml(item.name)}</span><button class="shopping-remove" type="button" data-shopping-remove="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 삭제">×</button></div>`).join('') : `<div class="empty-state basket-empty"><img src="assets/salim-basket-v1-web.png" alt="" width="150" height="140"><strong>장바구니를 채워보세요</strong><span>위에 살 물건을 적고 ‘담기’를 누르세요.</span></div>`;
+        target.innerHTML = shoppingList.length ? shoppingList.map(item => `<div class="shopping-item ${item.done ? 'checked' : ''}"><input type="checkbox" data-shopping-toggle="${escapeHtml(item.id)}" ${item.done ? 'checked' : ''} aria-label="${escapeHtml(item.name)} 구매 여부"><span class="shopping-item-name">${escapeHtml(item.name)}</span><button class="shopping-remove" type="button" data-shopping-remove="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 삭제">×</button></div>`).join('') : `<div class="empty-state basket-empty"><img src="assets/salim-cute-basket-v1-web.png" alt="" width="150" height="140"><strong>장바구니를 채워보세요</strong><span>위에 살 물건을 적고 ‘담기’를 누르세요.</span></div>`;
       }
       function addShoppingListItem() {
         const input = document.getElementById('shoppingItemInput');
@@ -1198,7 +1198,7 @@
         document.getElementById('navExpiryCount').textContent = alerts.length || '';
         const alertList = document.getElementById('alertList');
         if (!alerts.length) {
-          alertList.innerHTML = `<div class="empty-state alert-empty"><div class="alert-empty-copy"><strong>기한 임박 항목 없음</strong><span>식품·화장품을 등록하면 이곳에 표시됩니다.</span></div><img src="assets/salim-expiry-optimized.png" alt="" aria-hidden="true"></div>`;
+          alertList.innerHTML = `<div class="empty-state alert-empty"><div class="alert-empty-copy"><strong>기한 임박 항목 없음</strong><span>식품·화장품을 등록하면 이곳에 표시됩니다.</span></div><img src="assets/salim-cute-expiry-v1-web.png" alt="" aria-hidden="true"></div>`;
         } else {
           alertList.innerHTML = alerts.slice(0,4).map(item => {
             const due = deadlineLabel(item);
@@ -1207,7 +1207,7 @@
         }
         const activity = sortedRecords().slice(0,4);
         const activityList = document.getElementById('activityList');
-        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state activity-empty"><div class="activity-empty-copy"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div><img src="assets/salim-empty-optimized.png" alt="" aria-hidden="true"></div>`;
+        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state activity-empty"><div class="activity-empty-copy"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div><img src="assets/salim-cute-chores-v1-web.png" alt="" aria-hidden="true"></div>`;
       }
       function viewItems() {
         if (currentView === 'expiry') return sortedRecords(records.filter(x => x.kind === 'food' || x.kind === 'cosmetic'));
