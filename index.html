@@ -670,6 +670,7 @@
       let currentView = 'overview';
       let currentType = 'laundry';
       let editingItem = null;
+      let formSnapshot = '';
       let editingMedicineId = null;
       let editingRoutineId = null;
       let expiryFilter = 'all';
@@ -1273,7 +1274,7 @@
         document.body.style.overflow = 'hidden';
         setTimeout(() => document.querySelector('#formFields input')?.focus(), 30);
       }
-      function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); document.body.style.overflow = ''; editingItem = null; restoreFocus(); }
+      function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); document.body.style.overflow = ''; editingItem = null; formSnapshot = ''; restoreFocus(); }
       function updateTabs() {
         document.querySelectorAll('.type-tab').forEach(tab => {
           const active = tab.dataset.type === currentType;
@@ -1307,6 +1308,18 @@
         fields.innerHTML += `<div class="field full"><label for="recordPhoto">사진 <span class="hint">선택 · 자동으로 용량을 줄여 저장</span></label><input id="recordPhoto" name="photo" type="file" accept="image/*"><div class="photo-preview" id="photoPreview">${current.photo ? `<img src="${escapeHtml(current.photo)}" alt="첨부 사진"><button type="button" class="secondary-button" data-remove-photo>사진 제거</button>` : ''}</div></div>`;
         document.getElementById('modalTitle').textContent = `${labels[currentType]} ${editingItem ? '수정' : '기록 추가'}`;
         document.querySelector('#recordForm button[type="submit"]').textContent = editingItem ? '수정 저장' : '기록 저장';
+        // 방금 그린 입력값을 기준으로 저장해 두고, 닫을 때 사용자가 바꾼 내용이 있는지 비교함
+        formSnapshot = currentFormState();
+      }
+      function currentFormState() {
+        return Array.from(document.getElementById('recordForm').elements)
+          .filter(el => el.type !== 'button' && el.type !== 'submit')
+          .map(el => el.type === 'file' ? el.files.length : el.value).join('\u0001');
+      }
+      function requestCloseModal() {
+        const dirty = currentFormState() !== formSnapshot;
+        if (dirty && !window.confirm('저장하지 않은 내용이 있어요. 입력한 내용을 버리고 닫을까요?')) return;
+        closeModal();
       }
       function updateCosmeticPreview() {
         const opened = document.getElementById('openedAt')?.value || today;
@@ -1616,9 +1629,9 @@
         else if (remove) deleteRoutine(remove.dataset.routineDelete, remove);
       });
       document.getElementById('exportCalendar').addEventListener('click', exportCalendar);
-      document.getElementById('closeModal').addEventListener('click', closeModal);
-      document.getElementById('cancelModal').addEventListener('click', closeModal);
-      document.getElementById('modalBackdrop').addEventListener('click', e => { if (e.target.id === 'modalBackdrop') closeModal(); });
+      document.getElementById('closeModal').addEventListener('click', requestCloseModal);
+      document.getElementById('cancelModal').addEventListener('click', requestCloseModal);
+      document.getElementById('modalBackdrop').addEventListener('click', e => { if (e.target.id === 'modalBackdrop') requestCloseModal(); });
       document.getElementById('typeTabs').addEventListener('click', e => { const tab = e.target.closest('[data-type]'); if (tab) { currentType = tab.dataset.type; updateTabs(); renderForm(); } });
       document.getElementById('recordForm').addEventListener('submit', saveForm);
       document.getElementById('formFields').addEventListener('input', e => {
@@ -1777,7 +1790,7 @@
           // 열려 있지 않은 다른 화면의 입력값을 지우거나 포커스를 엉뚱한 곳으로 옮기지 않게 함
           if (document.getElementById('photoViewer').classList.contains('open')) { closePhoto(); return; }
           if (document.getElementById('medModalBackdrop').classList.contains('open')) { closeMedicationModal(); return; }
-          if (document.getElementById('modalBackdrop').classList.contains('open')) { closeModal(); return; }
+          if (document.getElementById('modalBackdrop').classList.contains('open')) { requestCloseModal(); return; }
           // 반복 일정 수정은 반복 관리 화면에서만 취소함. 다른 화면에서 Esc를 눌러 조용히 입력값이 사라지지 않게 함
           if (editingRoutineId && currentView === 'routines') {
             resetRoutineForm();
