@@ -928,12 +928,15 @@
       }
       function renderRoutinePreview() {
         const target = document.getElementById('dashboardRoutineList');
-        const upcoming = [...routines].sort((a,b) => (a.nextDate || '').localeCompare(b.nextDate || '')).slice(0,3);
+        const sortedRoutines = [...routines].sort((a,b) => (a.nextDate || '').localeCompare(b.nextDate || ''));
+        const upcoming = sortedRoutines.slice(0,3);
+        // 미리보기는 3개만 보여주므로, 나머지 개수를 알려 일정이 빠진 줄 모르는 일이 없게 함
+        const hiddenCount = sortedRoutines.length - upcoming.length;
         target.innerHTML = upcoming.length ? upcoming.map(item => {
           const days = daysUntil(item.nextDate);
           const state = days < 0 ? 'overdue' : days === 0 ? 'urgent' : '';
           return `<div class="routine-preview-row"><div class="routine-preview-copy"><div class="routine-preview-name">${escapeHtml(item.name)}</div><div class="routine-preview-date">${formatDate(item.nextDate, false)} · ${cadenceLabel(item.cadence)}</div></div><span class="routine-due ${state}">${routineDueText(item.nextDate)}</span></div>`;
-        }).join('') : `<div class="empty-state"><strong>등록된 반복 일정이 없습니다</strong><span>집안일을 등록하면 다음 날짜를 보여드려요.</span></div>`;
+        }).join('') + (hiddenCount > 0 ? `<p class="list-more">외 ${hiddenCount}개 일정이 더 있어요. 관리에서 확인하세요.</p>` : '') : `<div class="empty-state"><strong>등록된 반복 일정이 없습니다</strong><span>집안일을 등록하면 다음 날짜를 보여드려요.</span></div>`;
       }
       function renderRoutines() {
         const target = document.getElementById('routineList');
