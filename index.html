@@ -1393,7 +1393,7 @@
         focusAfterRemoval(list, '[data-delete]', index, document.getElementById('searchInput'));
       }
       function renderMedTimeInputs(times) {
-        document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="시간 삭제">×</button></div>`).join('');
+        document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="복용 시간 ${index + 1} 삭제" title="삭제">×</button></div>`).join('');
       }
       function openMedicationModal(med = null) {
         rememberFocus();
