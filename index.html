@@ -1468,17 +1468,25 @@
         document.getElementById('medDose').value = med?.dose || '';
         document.getElementById('medStartDate').value = med?.startDate || '';
         document.getElementById('medEndDate').value = med?.endDate || '';
+        syncMedEndDateMin();
         renderMedTimeInputs(med?.times?.length ? med.times : ['08:00']);
         document.getElementById('dayPicker').innerHTML = weekdays.map((day, index) => `<label class="day-option"><input type="checkbox" name="medDay" value="${index}" ${(med?.days || [0,1,2,3,4,5,6]).includes(index) ? 'checked' : ''}><span>${day}</span></label>`).join('');
         document.getElementById('medModalBackdrop').classList.add('open');
         document.body.style.overflow = 'hidden';
         setTimeout(() => document.getElementById('medName').focus(), 30);
       }
+      // 종료일 달력에서 시작일 이전 날짜를 미리 막아 저장 전에 잘못된 기간을 알 수 있게 함 (저장 시 검사는 그대로 유지)
+      function syncMedEndDateMin() {
+        const start = document.getElementById('medStartDate').value;
+        document.getElementById('medEndDate').min = start || '';
+      }
+      document.getElementById('medStartDate').addEventListener('input', syncMedEndDateMin);
       function closeMedicationModal() {
         document.getElementById('medModalBackdrop').classList.remove('open');
         document.body.style.overflow = '';
         editingMedicineId = null;
         document.getElementById('medForm').reset();
+        syncMedEndDateMin();
         restoreFocus();
       }
       function saveMedication(event) {
