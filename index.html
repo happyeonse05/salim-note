@@ -955,7 +955,8 @@
         const sorted = [...routines].sort((a,b) => (a.nextDate || '').localeCompare(b.nextDate || ''));
         const dueCount = routines.filter(item => daysUntil(item.nextDate) <= 0).length;
         document.getElementById('navRoutineCount').textContent = dueCount || '';
-        document.getElementById('routineCount').textContent = `${routines.length}개`;
+        // 제목 옆 개수에 지금 해야 할(기한 오늘 이전) 일정 수를 함께 보여 목록을 훑지 않아도 알 수 있게 함
+        document.getElementById('routineCount').textContent = dueCount ? `${routines.length}개 · 지금 ${dueCount}개` : `${routines.length}개`;
         target.innerHTML = sorted.length ? sorted.map(item => {
           const days = daysUntil(item.nextDate);
           const state = days < 0 ? 'overdue' : days === 0 ? 'urgent' : '';
