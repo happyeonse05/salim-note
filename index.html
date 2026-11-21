@@ -580,7 +580,7 @@
           <div class="panel-heading"><div><h2 class="panel-title">살 것</h2><p class="panel-caption">체크한 항목은 장보기 기록으로 저장할 수 있어요.</p></div><span class="shopping-count" id="shoppingCount">0개</span></div>
           <div class="shopping-entry"><input id="shoppingItemInput" type="text" maxlength="100" placeholder="예: 우유, 달걀" aria-label="장보기 품목"><button class="primary-button" id="addShoppingItem" type="button">추가</button></div>
           <div class="shopping-items" id="shoppingItems"></div>
-          <div class="shopping-list-footer"><div class="shopping-footer-info"><span id="shoppingCheckedCount">체크한 항목 0개</span><button class="text-button" id="clearShoppingChecks" type="button" disabled>체크 풀기</button></div><button class="secondary-button" id="saveShoppingPurchase" type="button" disabled>구매 기록에 담기</button></div>
+          <div class="shopping-list-footer"><div class="shopping-footer-info"><span id="shoppingCheckedCount">체크한 항목 0개</span><button class="text-button" id="clearShoppingChecks" type="button" disabled>체크 풀기</button> · <button class="text-button" id="removeCheckedShopping" type="button" disabled>체크 항목 빼기</button></div><button class="secondary-button" id="saveShoppingPurchase" type="button" disabled>구매 기록에 담기</button></div>
         </section>
         <div class="record-list" id="recordList"></div>
         <div class="storage-note">기록·사진·일정은 이 브라우저에 저장됩니다. <button class="text-button" id="backupInline">백업 파일 만들기</button> · <button class="text-button" id="exportCsv" type="button">전체 기록 CSV 저장</button></div>
@@ -975,6 +975,7 @@
         document.getElementById('shoppingCheckedCount').textContent = `체크한 항목 ${checked.length}개`;
         document.getElementById('saveShoppingPurchase').disabled = checked.length === 0;
         document.getElementById('clearShoppingChecks').disabled = checked.length === 0;
+        document.getElementById('removeCheckedShopping').disabled = checked.length === 0;
         target.innerHTML = shoppingList.length ? shoppingList.map(item => `<div class="shopping-item ${item.done ? 'checked' : ''}"><input type="checkbox" id="shop-${escapeHtml(item.id)}" data-shopping-toggle="${escapeHtml(item.id)}" ${item.done ? 'checked' : ''} aria-label="${escapeHtml(item.name)} 구매 여부"><label class="shopping-item-name" for="shop-${escapeHtml(item.id)}">${escapeHtml(item.name)}</label><button class="shopping-remove" type="button" data-shopping-remove="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 삭제">×</button></div>`).join('') : `<div class="empty-state"><strong>장보기 목록이 비어 있어요</strong><span>살 물건을 입력하고 추가해 주세요.</span></div>`;
       }
       function addShoppingListItem() {
@@ -1685,6 +1686,20 @@
         } });
       });
       document.getElementById('saveShoppingPurchase').addEventListener('click', saveCheckedShoppingItems);
+      // Remove checked items without saving them as records (e.g. bought but not worth logging). Undo restores their original positions.
+      // 구매 기록 없이 체크한 품목만 목록에서 뺌 — 되돌리기 시 원래 자리로 복원
+      document.getElementById('removeCheckedShopping').addEventListener('click', () => {
+        const removed = [];
+        shoppingList.forEach((item, index) => { if (item.done) removed.push({ item, index }); });
+        if (!removed.length) return;
+        shoppingList = shoppingList.filter(item => !item.done);
+        saveShoppingList(); renderShoppingList();
+        (document.querySelector('#shoppingItems [data-shopping-toggle]') || document.getElementById('shoppingItemInput')).focus();
+        showToast(`체크한 ${removed.length}개를 목록에서 뺐어요.`, { label: '되돌리기', onClick: () => {
+          removed.forEach(({ item, index }) => shoppingList.splice(Math.min(index, shoppingList.length), 0, item));
+          saveShoppingList(); renderShoppingList();
+        } });
+      });
       document.getElementById('clearShoppingChecks').addEventListener('click', () => {
         const count = shoppingList.filter(item => item.done).length;
         if (!count) return;
