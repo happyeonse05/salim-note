@@ -306,7 +306,7 @@
   $('newMedicine').addEventListener('click', () => { go('add', false); chooseKind('medicine'); });
   $('budgetForm').addEventListener('submit', event => {
     event.preventDefault(); const value = $('budgetAmount').value.trim(), budget = value ? C.parseAmount(value) : null;
-    if (value && !budget) { announce('예산은 1원 이상 숫자로 입력해 주세요.'); return; }
+    if (value && !budget) { announce('예산은 1원 이상 숫자로 입력해 주세요.'); $('budgetAmount').focus(); return; }
     if (persist({ ...state, budget })) { announce(budget ? '주간 예산을 저장했어요.' : '예산 표시를 껐어요.'); renderHistory(); }
   });
   $('main').addEventListener('click', event => {
