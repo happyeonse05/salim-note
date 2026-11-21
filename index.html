@@ -515,7 +515,7 @@
     <main class="main">
       <header class="topbar">
         <div><div class="eyebrow">살림 기록</div><h1 id="pageTitle">대시보드</h1></div>
-        <div class="top-actions"><div class="date-chip" id="todayChip"></div><button class="notification-button" id="notificationButton" title="복용 시간과 사용기한 알림"><span>◷</span> 알림 켜기</button><button class="primary-button" id="openAdd"><span class="plus">＋</span> 기록 추가</button></div>
+        <div class="top-actions"><div class="date-chip" id="todayChip"></div><button class="notification-button" id="notificationButton" title="복용 시간과 사용기한 알림"><span aria-hidden="true">◷</span> 알림 켜기</button><button class="primary-button" id="openAdd"><span class="plus" aria-hidden="true">＋</span> 기록 추가</button></div>
       </header>
 
       <section class="dashboard" id="dashboard">
@@ -546,26 +546,26 @@
         <section class="panel quick-panel">
           <div class="panel-heading"><div><h2 class="panel-title">빠른 입력</h2><p class="panel-caption">기록 종류 선택</p></div></div>
           <div class="quick-actions">
-            <button class="quick-action" data-add="laundry"><span>◌</span><span>빨래 등록</span></button>
-            <button class="quick-action" data-add="shopping"><span>⌑</span><span>장보기 등록</span></button>
-            <button class="quick-action" data-add="clothes"><span>♧</span><span>옷 구매 등록</span></button>
-            <button class="quick-action" data-add="food"><span>◉</span><span>식품 기한</span></button>
-            <button class="quick-action" data-add="cosmetic"><span>✿</span><span>화장품 기한</span></button>
-            <button class="quick-action" data-open-view="shopping"><span>☑</span><span>장보기 목록</span></button>
-            <button class="quick-action" data-open-view="routines"><span>↻</span><span>반복 일정</span></button>
+            <button class="quick-action" data-add="laundry"><span aria-hidden="true">◌</span><span>빨래 등록</span></button>
+            <button class="quick-action" data-add="shopping"><span aria-hidden="true">⌑</span><span>장보기 등록</span></button>
+            <button class="quick-action" data-add="clothes"><span aria-hidden="true">♧</span><span>옷 구매 등록</span></button>
+            <button class="quick-action" data-add="food"><span aria-hidden="true">◉</span><span>식품 기한</span></button>
+            <button class="quick-action" data-add="cosmetic"><span aria-hidden="true">✿</span><span>화장품 기한</span></button>
+            <button class="quick-action" data-open-view="shopping"><span aria-hidden="true">☑</span><span>장보기 목록</span></button>
+            <button class="quick-action" data-open-view="routines"><span aria-hidden="true">↻</span><span>반복 일정</span></button>
           </div>
         </section>
       </section>
 
       <section class="list-section" id="listSection">
-        <div class="panel-heading"><div><h2 class="panel-title" id="listTitle">기록</h2><p class="panel-caption" id="listCaption"></p></div><button class="primary-button" id="listAdd"><span class="plus">＋</span> 새 기록</button></div>
+        <div class="panel-heading"><div><h2 class="panel-title" id="listTitle">기록</h2><p class="panel-caption" id="listCaption"></p></div><button class="primary-button" id="listAdd"><span class="plus" aria-hidden="true">＋</span> 새 기록</button></div>
         <div class="filter-chips" id="expiryFilters" role="group" aria-label="사용기한 필터" hidden>
           <button class="filter-chip active" type="button" data-expiry-filter="all">전체</button>
           <button class="filter-chip" type="button" data-expiry-filter="expired">지남</button>
           <button class="filter-chip" type="button" data-expiry-filter="week">7일 이내</button>
           <button class="filter-chip" type="button" data-expiry-filter="later">그 이후</button>
         </div>
-        <div class="list-toolbar"><div class="search-wrap"><span>⌕</span><input class="search-input" type="search" id="searchInput" placeholder="이름이나 메모 검색" aria-label="기록 검색" title="/ 키를 누르면 바로 검색할 수 있어요"></div><select class="sort-select" id="sortSelect" aria-label="정렬"><option value="newest">최근 기록순</option><option value="oldest">오래된 순</option><option value="name">이름순</option></select></div>
+        <div class="list-toolbar"><div class="search-wrap"><span aria-hidden="true">⌕</span><input class="search-input" type="search" id="searchInput" placeholder="이름이나 메모 검색" aria-label="기록 검색" title="/ 키를 누르면 바로 검색할 수 있어요"></div><select class="sort-select" id="sortSelect" aria-label="정렬"><option value="newest">최근 기록순</option><option value="oldest">오래된 순</option><option value="name">이름순</option></select></div>
         <section class="panel shopping-list-panel" id="shoppingListPanel">
           <div class="panel-heading"><div><h2 class="panel-title">살 것</h2><p class="panel-caption">체크한 항목은 장보기 기록으로 저장할 수 있어요.</p></div><span class="shopping-count" id="shoppingCount">0개</span></div>
           <div class="shopping-entry"><input id="shoppingItemInput" type="text" maxlength="100" placeholder="예: 우유, 달걀" aria-label="장보기 품목"><button class="primary-button" id="addShoppingItem" type="button">추가</button></div>
@@ -577,7 +577,7 @@
       </section>
 
       <section class="med-section" id="medSection">
-        <div class="panel-heading"><div><h2 class="panel-title">복용 체크</h2><p class="panel-caption">약과 복용 시간을 등록하고 오늘 복용을 기록합니다.</p></div><button class="primary-button" id="addMedication"><span class="plus">＋</span> 약 추가</button></div>
+        <div class="panel-heading"><div><h2 class="panel-title">복용 체크</h2><p class="panel-caption">약과 복용 시간을 등록하고 오늘 복용을 기록합니다.</p></div><button class="primary-button" id="addMedication"><span class="plus" aria-hidden="true">＋</span> 약 추가</button></div>
         <div class="med-layout">
           <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">오늘 복용 일정</h2><p class="panel-caption" id="medTodayCaption"></p></div></div><div class="med-dose-list" id="medDoseList"></div></section>
           <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">등록된 약</h2><p class="panel-caption">약 이름, 시간, 요일</p></div><span class="shopping-count" id="medCount">0개</span></div><div class="med-list" id="medList"></div><p class="med-disclaimer">복용 여부 기록용입니다. 복용량·복용법은 처방 및 제품 설명을 따르세요.</p></section>
@@ -591,7 +591,7 @@
             <div class="field"><label for="routineName">할 일</label><input id="routineName" name="name" required maxlength="80" placeholder="예: 정수기 필터 교체"></div>
             <div class="field"><label for="routineNextDate">다음 날짜</label><input id="routineNextDate" name="nextDate" type="date" required></div>
             <div class="field"><label for="routineCadence">반복 주기</label><select id="routineCadence" name="cadence"><option value="P7D">매주</option><option value="P14D">2주마다</option><option value="P1M" selected>매월</option><option value="P3M">3개월마다</option><option value="P6M">6개월마다</option><option value="P1Y">매년</option></select></div>
-            <button class="primary-button" id="routineSubmitButton" type="submit"><span class="plus">＋</span> 일정 등록</button>
+            <button class="primary-button" id="routineSubmitButton" type="submit"><span class="plus" aria-hidden="true">＋</span> 일정 등록</button>
           </form>
         </section>
         <section class="panel routine-list-panel"><div class="panel-heading"><div><h2 class="panel-title">등록한 일정</h2><p class="panel-caption">완료하면 선택한 주기만큼 다음 날짜가 자동으로 바뀝니다.</p></div><span class="shopping-count" id="routineCount">0개</span></div><div class="routine-list" id="routineList"></div></section>
@@ -839,7 +839,7 @@
           const times = (med.times || []).slice().sort().join(' · ');
           const days = (med.days || [0,1,2,3,4,5,6]).map(d => weekdays[d]).join(' ');
           const range = [med.startDate ? `${formatDate(med.startDate, false)} 시작` : '', med.endDate ? `${formatDate(med.endDate, false)} 종료` : ''].filter(Boolean).join(' · ');
-          return `<article class="med-card"><div class="record-icon">＋</div><div class="med-card-main"><div class="med-card-name">${escapeHtml(med.name)}</div><div class="med-card-info">${escapeHtml(med.dose || '복용량 미입력')} · ${escapeHtml(times)}<br>${escapeHtml(days)}${range ? ` · ${escapeHtml(range)}` : ''}</div></div><div class="med-card-actions"><button class="edit-button" data-edit-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 수정" title="수정">✎</button><button class="delete-button" data-delete-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 삭제" title="삭제">×</button></div></article>`;
+          return `<article class="med-card"><div class="record-icon" aria-hidden="true">＋</div><div class="med-card-main"><div class="med-card-name">${escapeHtml(med.name)}</div><div class="med-card-info">${escapeHtml(med.dose || '복용량 미입력')} · ${escapeHtml(times)}<br>${escapeHtml(days)}${range ? ` · ${escapeHtml(range)}` : ''}</div></div><div class="med-card-actions"><button class="edit-button" data-edit-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 수정" title="수정">✎</button><button class="delete-button" data-delete-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 삭제" title="삭제">×</button></div></article>`;
         }).join('');
       }
       function renderMedications() {
@@ -857,7 +857,7 @@
         const button = document.getElementById('notificationButton');
         button.classList.toggle('enabled', notificationsEnabled);
         button.title = '복용 예정 시간, 사용기한, 반복 일정 알림';
-        button.innerHTML = `<span>◷</span> ${notificationsEnabled ? '알림 끄기' : '알림 켜기'}`;
+        button.innerHTML = `<span aria-hidden="true">◷</span> ${notificationsEnabled ? '알림 끄기' : '알림 켜기'}`;
         document.getElementById('sideNotificationStatus').textContent = notificationsEnabled ? '브라우저 알림 켜짐' : '브라우저 알림 꺼짐';
       }
       async function toggleNotifications() {
@@ -986,7 +986,7 @@
         editingRoutineId = null;
         document.getElementById('routineForm').reset();
         document.getElementById('routineNextDate').value = today;
-        document.getElementById('routineSubmitButton').innerHTML = '<span class="plus">＋</span> 일정 등록';
+        document.getElementById('routineSubmitButton').innerHTML = '<span class="plus" aria-hidden="true">＋</span> 일정 등록';
         document.getElementById('cancelRoutineEdit').hidden = true;
       }
       function saveRoutine(event) {
@@ -1117,7 +1117,7 @@
         today = localDateString(new Date());
         renderDate(); renderDashboard(); renderList(); renderMedications(); renderRoutines(); renderShoppingList(); renderNotificationButton(); updateNav();
         const addLabel = currentView === 'medications' ? '약 추가' : currentView === 'routines' ? '일정 추가' : '기록 추가';
-        document.getElementById('openAdd').innerHTML = `<span class="plus">＋</span> ${addLabel}`;
+        document.getElementById('openAdd').innerHTML = `<span class="plus" aria-hidden="true">＋</span> ${addLabel}`;
         const nextDate = document.getElementById('routineNextDate');
         if (nextDate && !nextDate.value) nextDate.value = today;
       }
@@ -1145,12 +1145,12 @@
           // 아래 '사용기한 전체 보기' 버튼은 data-open-view로 사용기한 화면으로 이동
           alertList.innerHTML = alerts.slice(0,4).map(item => {
             const due = deadlineLabel(item);
-            return `<div class="alert-row ${due.className === 'urgent' || due.className === 'past' ? 'urgent' : ''}"><div class="alert-symbol">${icons[item.kind]}</div><div class="alert-meta"><div class="alert-name">${escapeHtml(item.name)}</div><div class="alert-date">${labels[item.kind]} · ${formatDate(item.deadline, false)}까지</div></div><span class="deadline ${due.className}">${due.text}</span></div>`;
+            return `<div class="alert-row ${due.className === 'urgent' || due.className === 'past' ? 'urgent' : ''}"><div class="alert-symbol" aria-hidden="true">${icons[item.kind]}</div><div class="alert-meta"><div class="alert-name">${escapeHtml(item.name)}</div><div class="alert-date">${labels[item.kind]} · ${formatDate(item.deadline, false)}까지</div></div><span class="deadline ${due.className}">${due.text}</span></div>`;
           }).join('') + (hiddenCount > 0 ? `<p class="list-more">외 ${hiddenCount}건이 더 있어요. <button class="link-button" type="button" data-open-view="expiry">사용기한 전체 보기 →</button></p>` : '');
         }
         const activity = sortedRecords().slice(0,4);
         const activityList = document.getElementById('activityList');
-        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state activity-empty"><div class="activity-empty-copy"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div><img src="assets/salim-empty-optimized.png" alt="" aria-hidden="true"></div>`;
+        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon" aria-hidden="true">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state activity-empty"><div class="activity-empty-copy"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div><img src="assets/salim-empty-optimized.png" alt="" aria-hidden="true"></div>`;
       }
       function viewItems() {
         if (currentView === 'expiry') return sortedRecords(records.filter(x => (x.kind === 'food' || x.kind === 'cosmetic') && (expiryFilter === 'all' || expiryBucket(x) === expiryFilter)));
@@ -1250,7 +1250,7 @@
         const noteToggle = item.note && item.note.length > 60 ? `<button class="note-toggle" type="button" data-note-toggle="${escapeHtml(noteId)}" aria-controls="${escapeHtml(noteId)}" aria-expanded="false">더 보기</button>` : '';
         const note = item.note ? `<span class="record-note" id="${escapeHtml(noteId)}" title="${escapeHtml(item.note)}">${escapeHtml(item.note)}</span>${noteToggle}` : '';
         const detailHtml = details.map(x => `<span>${escapeHtml(x)}</span>`).join('<span>·</span>') + (note ? `<span>·</span>${note}` : '');
-        const thumbnail = item.photo ? `<button class="record-photo" data-photo="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 사진 보기"><img src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} 사진" loading="lazy" decoding="async"></button>` : `<div class="record-icon">${icons[item.kind]}</div>`;
+        const thumbnail = item.photo ? `<button class="record-photo" data-photo="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 사진 보기"><img src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} 사진" loading="lazy" decoding="async"></button>` : `<div class="record-icon" aria-hidden="true">${icons[item.kind]}</div>`;
         return `<article class="record-card">${thumbnail}<div class="record-copy"><div class="record-title" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="record-detail">${detailHtml}</div></div><div class="record-right">${deadline}<button class="edit-button" data-edit="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 수정" title="수정">✎</button><button class="delete-button" data-delete="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} 기록 삭제" title="삭제">×</button></div></article>`;
       }
       function updateNav() {
@@ -1343,7 +1343,7 @@
         const finalDate = labelDate && labelDate < openingDeadline ? labelDate : openingDeadline;
         const source = labelDate && labelDate < openingDeadline ? '제품 표시기한이 더 빨라요.' : `개봉일로부터 ${months}개월 기준이에요.`;
         const preview = document.getElementById('calcPreview');
-        preview.innerHTML = `<span>◷</span><span>권장 사용 종료일 <b>${formatDate(finalDate)}</b><br>${source} 제품 용기·포장에 적힌 표시를 우선 확인해 주세요.</span>`;
+        preview.innerHTML = `<span aria-hidden="true">◷</span><span>권장 사용 종료일 <b>${formatDate(finalDate)}</b><br>${source} 제품 용기·포장에 적힌 표시를 우선 확인해 주세요.</span>`;
       }
       async function compressImage(file) {
         if (!file) return '';
