@@ -968,7 +968,8 @@
       function renderShoppingList() {
         const target = document.getElementById('shoppingItems');
         const checked = shoppingList.filter(item => item.done);
-        document.getElementById('shoppingCount').textContent = `${shoppingList.length}개`;
+        // 체크한 항목이 있으면 아직 살 물건 수(남은 개수)를 보여줘서 헤더 숫자가 실제 할 일과 맞도록 함
+        document.getElementById('shoppingCount').textContent = checked.length ? `남은 ${shoppingList.length - checked.length}개` : `${shoppingList.length}개`;
         document.getElementById('shoppingCheckedCount').textContent = `체크한 항목 ${checked.length}개`;
         document.getElementById('saveShoppingPurchase').disabled = checked.length === 0;
         document.getElementById('clearShoppingChecks').disabled = checked.length === 0;
