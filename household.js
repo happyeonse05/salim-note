@@ -706,6 +706,10 @@
           }
         }
       });
+      document.querySelector('.skip-link').addEventListener('click', event => {
+        event.preventDefault();
+        document.getElementById('householdMain').focus();
+      });
       document.getElementById('searchInput').addEventListener('input', renderList);
       document.getElementById('sortSelect').addEventListener('change', renderList);
       document.getElementById('recordList').addEventListener('click', e => {

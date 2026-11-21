@@ -6,9 +6,10 @@
   <meta name="theme-color" content="#f5f3ed">
   <meta name="description" content="빨래, 장보기, 반복 집안일, 복용 일정과 식품·화장품 사용기한을 관리하는 생활 기록 앱">
   <title>살림 관리 · 오늘 살림</title>
-  <link rel="stylesheet" href="household.css?v=20261121-restore-1">
+  <link rel="stylesheet" href="household.css?v=20261121-skip-main-1">
 </head>
 <body>
+  <a class="skip-link" href="#householdMain">본문으로 바로가기</a>
   <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
       <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></symbol>
@@ -47,7 +48,7 @@
       <div class="side-tools"><span>내 데이터</span><span><button class="text-button" id="exportButton">백업하기</button> · <button class="text-button" id="importButton">가져오기</button></span></div>
     </aside>
 
-    <main class="main">
+    <main class="main" id="householdMain" tabindex="-1">
       <a class="today-return" href="index.html">← 오늘·타이머·지출</a>
       <header class="topbar">
         <div><div class="eyebrow">살림 기록</div><h1 id="pageTitle">우리집 살림</h1></div>
@@ -172,7 +173,7 @@
 
   <script src="care-core.js?v=20261120-quick-care-1"></script>
   <script src="household-bridge.js?v=20261121-restore-1"></script>
-  <script src="household.js?v=20261121-search-count-1"></script>
+  <script src="household.js?v=20261121-skip-main-1"></script>
 </body>
 </html>
 
