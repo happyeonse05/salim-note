@@ -1456,8 +1456,16 @@
         if (!item || !(await askConfirm(`“${item.name}” 기록을 삭제할까요?`))) return;
         const list = document.getElementById('recordList');
         const index = [...list.querySelectorAll('[data-delete]')].indexOf(button);
-        records = records.filter(x => x.id !== id); save(); render(); showToast('기록을 삭제했어요.');
+        const position = records.indexOf(item);
+        records = records.filter(x => x.id !== id); save(); render();
         focusAfterRemoval(list, '[data-delete]', index, document.getElementById('searchInput'));
+        // 5초 안에 되돌리기를 누르면 삭제한 기록을 원래 자리에 다시 넣음 (사진 포함)
+        showToast('기록을 삭제했어요.', { label: '되돌리기', onClick: () => {
+          if (records.some(x => x.id === id)) return;
+          records.splice(Math.min(position, records.length), 0, item);
+          save(); render(); showToast('기록을 되돌렸어요.');
+          document.querySelector(`[data-edit="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+        } });
       }
       function renderMedTimeInputs(times) {
         document.getElementById('medTimes').innerHTML = times.map((time, index) => `<div class="med-time-row"><input type="time" name="medTime" value="${escapeHtml(time)}" required aria-label="복용 시간 ${index + 1}"><button class="remove-time" type="button" data-remove-time aria-label="복용 시간 ${index + 1} 삭제" title="삭제">×</button></div>`).join('');
