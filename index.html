@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#faf8f2">
   <meta name="description" content="빨래 남은 시간, 내가 체크한 복용 시각, 이번 주 지출을 짧게 확인하는 오늘 살림">
   <title>오늘 살림</title>
-  <link rel="stylesheet" href="styles.css?v=20261121-checkbox-touch-1">
+  <link rel="stylesheet" href="styles.css?v=20261121-restore-1">
   <script src="core.js?v=20261120-quick-care-1" defer></script>
   <script src="care-core.js?v=20261120-quick-care-1" defer></script>
-  <script src="app.js?v=20261121-history-empty-1" defer></script>
+  <script src="app.js?v=20261121-restore-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#mainNav">주 메뉴로 바로가기</a>
@@ -22,6 +22,7 @@
         <section aria-label="챙길 일" id="activeRows" class="ruled-list"></section>
         <section id="cosmeticSummary" class="ruled-list" aria-label="화장품 사용기한" hidden></section>
         <section aria-label="이번 주 지출" id="weeklySummary"></section>
+        <section class="household-links" aria-label="살림 관리"><h2 class="section-label">살림 관리</h2><div class="household-menu"><a href="household.html#shopping">장바구니</a><a href="household.html#expiry">식품·화장품 기한</a><a href="household.html#clothes">옷 구매</a><a href="household.html#routines">반복 집안일</a><a href="household.html#laundry">빨래 기록·사진</a><a href="household.html#overview">전체 살림</a></div></section>
         <section id="completedSection" hidden><h2 class="section-label">오늘 남긴 기록</h2><div id="completedRows" class="ruled-list"></div></section>
         <p id="emptyToday" class="quiet-empty" hidden>지금 챙길 일이 없어요.<br>필요하면 아래 ‘＋ 기록’에서 시작하세요.</p>
       </section>
@@ -42,10 +43,11 @@
         <details id="cosmeticSettings" class="settings"><summary>화장품과 사용기한</summary><div id="cosmeticItems"></div><button class="text-link" id="newCosmetic">화장품 등록</button></details>
         <details class="settings"><summary>주간 예산 <span class="optional">선택</span></summary><form id="budgetForm"><label for="budgetAmount">매주 쓸 금액</label><div class="inline-form"><input id="budgetAmount" inputmode="numeric" type="text" maxlength="11" placeholder="설정하지 않아도 돼요"><span>원</span><button class="plain" type="submit">저장</button></div><p class="small-note">월요일부터 일요일까지예요. 비워서 저장하면 예산 표시를 끕니다.</p></form></details>
         <details id="previousSection" class="settings" hidden><summary>이전 앱에 남긴 기록</summary><div id="previousRows"></div><p class="small-note">원래 저장 데이터는 그대로 보관해요. 금액이 있던 옷 구매 기록은 지출에도 이어서 표시합니다.</p></details>
+        <p class="small-note"><a href="household.html#all">생활 기록·사진·백업 가져오기</a> · <a href="household.html#medications">복용 요일·기간·복용량</a></p>
         <div class="backup-tools"><button id="backupButton" class="text-link">내 기록 백업</button><span>브라우저 데이터를 지우면 기록도 사라져요.</span></div>
       </section>
     </main>
-    <nav id="mainNav" class="bottom-nav" aria-label="주 메뉴" tabindex="-1"><button data-screen="today" aria-current="page">오늘</button><button data-screen="add" class="add-nav">＋ 기록</button><button data-screen="history">지난 기록</button></nav>
+    <nav id="mainNav" class="bottom-nav" aria-label="주 메뉴" tabindex="-1"><button data-screen="today" aria-current="page">오늘</button><button data-screen="add" class="add-nav">＋ 기록</button><a href="household.html#shopping">장바구니</a><button data-screen="history">지난 기록</button></nav>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button id="toastUndo" hidden>취소</button></div>
   <noscript><p class="notice">이 앱을 사용하려면 JavaScript를 켜 주세요. 기록은 브라우저 안에 저장됩니다.</p></noscript>

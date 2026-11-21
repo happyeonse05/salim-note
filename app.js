@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });
   const C = window.SalimCore;
   const H = window.SalimCare;
   const KEY = 'oneul-salim-v1';
@@ -31,6 +32,8 @@
     return { ...structuredClone(initial), ...saved };
   }
   let state = loadState();
+  let storageVersion;
+  try { storageVersion = localStorage.getItem(KEY); } catch { blocked = true; }
   let screen = 'today', kind = '', editingId = null, filter = 'all';
   let shownDate = C.day(new Date()), toastTimer, undoAction = null;
   function announce(message, undo = null) {
@@ -40,7 +43,9 @@
   }
   function persist(next) {
     if (blocked) { announce('저장 데이터를 먼저 백업해 주세요. 덮어쓰지 않았어요.'); return false; }
-    try { localStorage.setItem(KEY, JSON.stringify(next)); state = next; return true; }
+    try {
+      if (localStorage.getItem(KEY) !== storageVersion) { announce('다른 화면에서 기록이 바뀌었어요. 새로고침 후 다시 확인해 주세요.'); return false; }
+      const raw = JSON.stringify(next); localStorage.setItem(KEY, raw); storageVersion = raw; state = next; return true; }
     catch { announce('저장하지 못했어요. 브라우저 저장 공간을 확인해 주세요.'); return false; }
   }
   if (blocked) { $('storageError').hidden = false; $('storageError').textContent = '저장 데이터를 읽지 못했어요. 원본은 덮어쓰지 않았습니다. 지난 기록에서 먼저 백업해 주세요.'; }

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3ed">
+  <meta name="description" content="빨래, 장보기, 반복 집안일, 복용 일정과 식품·화장품 사용기한을 관리하는 생활 기록 앱">
+  <title>살림 관리 · 오늘 살림</title>
+  <link rel="stylesheet" href="household.css?v=20261121-restore-1">
+</head>
+<body>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></symbol>
+      <symbol id="icon-overview" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+      <symbol id="icon-expiry" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-9 3v3l2 1"/></symbol>
+      <symbol id="icon-medications" viewBox="0 0 24 24"><path d="m9 4-5 5a6 6 0 0 0 8 8l5-5a6 6 0 0 0-8-8Zm-2 3 8 8"/></symbol>
+      <symbol id="icon-laundry" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="3"/><path d="M4 7h16M7 4.5h.01m3 0h.01"/><circle cx="12" cy="14" r="4.5"/><path d="M8 14c2-2 4 2 8 0"/></symbol>
+      <symbol id="icon-shopping" viewBox="0 0 24 24"><path d="M2 3h3l3 12h11l3-9H6M9 19h.01M18 19h.01"/><circle cx="9" cy="19" r="1"/><circle cx="18" cy="19" r="1"/></symbol>
+      <symbol id="icon-clothes" viewBox="0 0 24 24"><path d="m8 3-6 4 3 5 3-2v11h8V10l3 2 3-5-6-4a4 4 0 0 1-8 0Z"/></symbol>
+      <symbol id="icon-routines" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3"/></symbol>
+      <symbol id="icon-food" viewBox="0 0 24 24"><path d="M12 7c-7-5-12 3-7 12 2 4 5 1 7 1s5 3 7-1c5-9 0-17-7-12Zm0 0V5m0 0c0-3 3-3 5-3 0 3-2 4-5 3Z"/></symbol>
+      <symbol id="icon-cosmetic" viewBox="0 0 24 24"><rect x="7" y="8" width="10" height="14" rx="2"/><path d="M9 8V4h6v4M12 4V2h6m-8 11h4"/></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m7 12 3 3 7-7"/></symbol>
+    </defs>
+  </svg>
+  <div id="householdError" class="storage-warning" role="alert" hidden></div>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="주 메뉴">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-home"></use></svg></div>
+        <div><div class="brand-name">살림 기록</div><div class="brand-sub">HOUSEHOLD LOG</div></div>
+      </div>
+      <div class="nav-label">나의 기록</div>
+      <nav class="nav-list">
+        <a class="nav-item" href="index.html"><span class="nav-icon" aria-hidden="true">⌂</span><span>오늘·지출</span></a>
+        <button class="nav-item active" data-view="overview"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-overview"></use></svg></span><span>우리집 살림</span></button>
+        <button class="nav-item" data-view="expiry"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-expiry"></use></svg></span><span>사용기한</span><span class="nav-count" id="navExpiryCount"></span></button>
+        <button class="nav-item" data-view="medications"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-medications"></use></svg></span><span>복용 체크</span><span class="nav-count" id="navMedCount"></span></button>
+        <button class="nav-item" data-view="laundry"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-laundry"></use></svg></span><span>빨래</span></button>
+        <button class="nav-item" data-view="shopping"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-shopping"></use></svg></span><span>장바구니</span></button>
+        <button class="nav-item" data-view="clothes"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-clothes"></use></svg></span><span>옷 구매</span></button>
+        <button class="nav-item" data-view="routines"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-routines"></use></svg></span><span>반복 관리</span><span class="nav-count" id="navRoutineCount"></span></button>
+      </nav>
+      <div class="side-spacer"></div>
+      <div class="side-note"><div class="side-note-title">알림 상태</div><p id="sideNotificationStatus">브라우저 알림 꺼짐</p></div>
+      <div class="side-tools"><span>내 데이터</span><span><button class="text-button" id="exportButton">백업하기</button> · <button class="text-button" id="importButton">가져오기</button></span></div>
+    </aside>
+
+    <main class="main">
+      <a class="today-return" href="index.html">← 오늘·타이머·지출</a>
+      <header class="topbar">
+        <div><div class="eyebrow">살림 기록</div><h1 id="pageTitle">우리집 살림</h1></div>
+        <div class="top-actions"><div class="date-chip" id="todayChip"></div><button class="notification-button" id="notificationButton" title="복용 시간과 사용기한 알림"><span>◷</span> 알림 켜기</button><button class="primary-button" id="openAdd"><span class="plus">＋</span> 기록 추가</button></div>
+      </header>
+
+      <section class="dashboard" id="dashboard">
+        <div class="dashboard-summary"><div class="summary-copy"><span class="summary-date" id="dashboardToday"></span><h2>오늘 챙길 살림</h2><p id="dashboardSummaryText">복용 일정과 사용기한을 확인하세요.</p></div><img class="summary-basket" src="assets/salim-cute-basket-v1-web.png" alt="" width="240" height="220"></div>
+        <section class="panel quick-panel">
+          <div class="panel-heading"><div><h2 class="panel-title">무엇을 하실까요?</h2><p class="panel-caption">그림을 눌러 시작하세요.</p></div></div>
+          <div class="quick-actions">
+            <button class="quick-action category-card" data-open-view="shopping"><span class="category-art"><img src="assets/salim-cute-basket-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">장바구니</span><span class="category-caption">살 물건 적기</span></button>
+            <button class="quick-action category-card" data-add="laundry"><span class="category-art"><img src="assets/salim-cute-laundry-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">빨래 기록</span><span class="category-caption">세탁 날짜 남기기</span></button>
+            <button class="quick-action category-card" data-open-view="medications"><span class="category-art"><img src="assets/salim-cute-medicine-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">복용 체크</span><span class="category-caption">오늘 복용 확인하기</span></button>
+            <button class="quick-action category-card" data-open-view="expiry"><span class="category-art"><img src="assets/salim-cute-expiry-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">사용기한</span><span class="category-caption">식품·화장품 기한</span></button>
+            <button class="quick-action category-card" data-add="clothes"><span class="category-art"><img src="assets/salim-cute-clothes-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">옷 구매</span><span class="category-caption">산 옷 기록하기</span></button>
+            <button class="quick-action category-card" data-open-view="routines"><span class="category-art"><img src="assets/salim-cute-chores-v1-web.png" alt="" width="144" height="112"></span><span class="category-title">반복 집안일</span><span class="category-caption">청소·교체 일정</span></button>
+          </div>
+        </section>
+        <div class="stat-grid">
+          <article class="stat-card"><div class="stat-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-laundry"></use></svg></div><div><div class="stat-label">이번 달 빨래</div><div class="stat-value"><span id="laundryStat">0</span><small>회 기록</small></div></div></article>
+          <article class="stat-card"><div class="stat-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-shopping"></use></svg></div><div><div class="stat-label">이번 달 장보기</div><div class="stat-value"><span id="shoppingStat">0</span><small>회 기록</small></div></div></article>
+          <article class="stat-card"><div class="stat-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="#icon-clothes"></use></svg></div><div><div class="stat-label">이번 달 새 옷</div><div class="stat-value"><span id="clothesStat">0</span><small>건 기록</small></div></div></article>
+        </div>
+        <section class="panel med-panel">
+          <div class="panel-heading"><div><h2 class="panel-title">오늘 복용</h2><p class="panel-caption">등록한 시간에 복용 여부를 체크하세요</p></div><button class="link-button" data-open-view="medications">약 관리 →</button></div>
+          <div class="med-dose-list" id="dashboardDoseList"></div>
+        </section>
+        <section class="panel routine-preview-panel">
+          <div class="panel-heading"><div><h2 class="panel-title">반복 일정</h2><p class="panel-caption">주기적으로 챙길 집안일</p></div><button class="link-button" data-open-view="routines">관리 →</button></div>
+          <div class="routine-preview-list" id="dashboardRoutineList"></div>
+        </section>
+        <div class="content-grid">
+          <section class="panel">
+            <div class="panel-heading"><div><h2 class="panel-title">기한 임박</h2><p class="panel-caption">60일 이내 사용기한</p></div><button class="link-button" data-open-view="expiry">전체 보기 →</button></div>
+            <div class="alert-list" id="alertList"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-heading"><div><h2 class="panel-title">최근 기록</h2><p class="panel-caption">최근 입력한 항목</p></div><button class="link-button" data-open-view="all">모두 보기 →</button></div>
+            <div class="activity-list" id="activityList"></div>
+          </section>
+        </div>
+
+      </section>
+
+      <section class="list-section" id="listSection">
+        <section class="panel shopping-list-panel" id="shoppingListPanel">
+          <div class="panel-heading"><div><h2 class="panel-title">나의 장바구니</h2><p class="panel-caption">살 물건을 담고, 샀으면 체크하세요.</p></div><span class="shopping-count" id="shoppingCount">0개</span></div>
+          <div class="shopping-entry"><input id="shoppingItemInput" type="text" maxlength="100" placeholder="예: 우유, 달걀" aria-label="장보기 품목"><button class="primary-button" id="addShoppingItem" type="button">담기</button></div>
+          <div class="shopping-items" id="shoppingItems"></div>
+          <div class="shopping-list-footer"><span id="shoppingCheckedCount">체크한 항목 0개</span><button class="secondary-button" id="saveShoppingPurchase" type="button" disabled>산 물건 기록하기</button></div>
+        </section>
+        <div class="panel-heading"><div><h2 class="panel-title" id="listTitle">기록</h2><p class="panel-caption" id="listCaption"></p></div><button class="primary-button" id="listAdd"><span class="plus">＋</span> 새 기록</button></div>
+        <div class="list-toolbar"><div class="search-wrap"><span>⌕</span><input class="search-input" type="search" id="searchInput" placeholder="이름이나 메모 검색" aria-label="기록 검색"></div><select class="sort-select" id="sortSelect" aria-label="정렬"><option value="newest">최근 기록순</option><option value="oldest">오래된 순</option></select></div>
+
+        <div class="record-list" id="recordList"></div>
+        <div class="storage-note">기록·사진·일정은 이 브라우저에 저장됩니다. <button class="text-button" id="backupInline">백업 파일 만들기</button></div>
+      </section>
+
+      <section class="med-section" id="medSection">
+        <div class="panel-heading"><div><h2 class="panel-title">복용 체크</h2><p class="panel-caption">약과 복용 시간을 등록하고 오늘 복용을 기록합니다.</p></div><button class="primary-button" id="addMedication"><span class="plus">＋</span> 약 추가</button></div>
+        <div class="med-layout">
+          <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">오늘 복용 일정</h2><p class="panel-caption" id="medTodayCaption"></p></div></div><div class="med-dose-list" id="medDoseList"></div></section>
+          <section class="panel"><div class="panel-heading"><div><h2 class="panel-title">등록된 약</h2><p class="panel-caption">약 이름, 시간, 요일</p></div></div><div class="med-list" id="medList"></div><p class="med-disclaimer">복용 여부 기록용입니다. 복용량·복용법은 처방 및 제품 설명을 따르세요.</p></section>
+        </div>
+      </section>
+      <section class="routine-section" id="routineSection">
+        <div class="panel-heading"><div><h2 class="panel-title">반복 관리</h2><p class="panel-caption">정기적으로 챙길 집안일을 등록하고 다음 일정을 관리합니다.</p></div><button class="secondary-button" id="exportCalendar" type="button">캘린더 내보내기</button></div>
+        <section class="panel routine-form-panel">
+          <div class="routine-form-heading"><div><h2 class="panel-title">일정 추가</h2><p class="panel-caption">세탁조 청소, 필터 교체, 침구 세탁 등을 등록하세요.</p></div></div>
+          <form class="routine-form" id="routineForm">
+            <div class="field"><label for="routineName">할 일</label><input id="routineName" name="name" required maxlength="80" placeholder="예: 정수기 필터 교체"></div>
+            <div class="field"><label for="routineNextDate">다음 날짜</label><input id="routineNextDate" name="nextDate" type="date" required></div>
+            <div class="field"><label for="routineCadence">반복 주기</label><select id="routineCadence" name="cadence"><option value="P7D">매주</option><option value="P14D">2주마다</option><option value="P1M" selected>매월</option><option value="P3M">3개월마다</option><option value="P6M">6개월마다</option><option value="P1Y">매년</option></select></div>
+            <button class="primary-button" id="routineSubmitButton" type="submit"><span class="plus">＋</span> 일정 등록</button>
+          </form>
+        </section>
+        <section class="panel routine-list-panel"><div class="panel-heading"><div><h2 class="panel-title">등록한 일정</h2><p class="panel-caption">완료하면 선택한 주기만큼 다음 날짜가 자동으로 바뀝니다.</p></div></div><div class="routine-list" id="routineList"></div></section>
+        <p class="calendar-note">캘린더 내보내기는 반복 일정을 .ics 파일로 저장합니다. 파일을 Google Calendar 또는 Apple 캘린더에 가져오면 기기 캘린더 알림을 사용할 수 있어요.</p>
+      </section>
+      <div class="mobile-data-tools" aria-label="데이터 관리"><button class="text-button" id="mobileExportButton">전체 백업</button><button class="text-button" id="mobileImportButton">백업 가져오기</button></div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-head"><div><h2 id="modalTitle">새 기록</h2><p>입력한 정보는 이 브라우저에 저장됩니다.</p></div><button class="close-button" id="closeModal" aria-label="닫기">×</button></div>
+      <div class="type-tabs" id="typeTabs">
+        <button class="type-tab active" data-type="laundry"><span>◌</span>빨래</button>
+        <button class="type-tab" data-type="shopping"><span>⌑</span>장보기</button>
+        <button class="type-tab" data-type="clothes"><span>♧</span>옷 구매</button>
+        <button class="type-tab" data-type="food"><span>◉</span>식품</button>
+        <button class="type-tab" data-type="cosmetic"><span>✿</span>화장품</button>
+      </div>
+      <form id="recordForm">
+        <div class="form-body"><div class="form-grid" id="formFields"></div><div class="calc-preview" id="calcPreview" hidden></div></div>
+        <div class="form-footer"><button type="button" class="secondary-button" id="cancelModal">취소</button><button type="submit" class="primary-button">기록 저장</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="medModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="medModalTitle">
+    <div class="modal">
+      <div class="modal-head"><div><h2 id="medModalTitle">약 추가</h2><p>이름과 복용 일정만 입력하면 됩니다.</p></div><button class="close-button" id="closeMedModal" aria-label="닫기">×</button></div>
+      <form id="medForm">
+        <div class="form-body"><div class="form-grid">
+          <div class="field full"><label for="medName">약 이름</label><input id="medName" name="name" required maxlength="80" placeholder="예: 비타민 D"></div>
+          <div class="field full"><label for="medDose">복용량 <span class="hint">선택</span></label><input id="medDose" name="dose" maxlength="40" placeholder="예: 1정, 5ml"></div>
+          <div class="field full"><label class="scheduled-option"><input id="medScheduled" type="checkbox" checked>정한 시간에 표시</label></div>
+          <div class="field full" id="medScheduleFields"><label>복용 시간</label><div id="medTimes"></div><button class="secondary-button" type="button" id="addMedTime">＋ 시간 추가</button></div>
+          <div class="field full"><label>복용 요일</label><div class="day-picker" id="dayPicker"></div></div>
+          <div class="field"><label for="medStartDate">시작일 <span class="hint">선택</span></label><input id="medStartDate" name="startDate" type="date"></div>
+          <div class="field"><label for="medEndDate">종료일 <span class="hint">선택</span></label><input id="medEndDate" name="endDate" type="date"></div>
+        </div><p class="med-disclaimer">알림은 이 앱이 열려 있고 브라우저 알림을 허용한 동안 전송됩니다. 체크가 없다는 이유로 복용하지 않았다고 판단하지 않습니다.</p></div>
+        <div class="form-footer"><button type="button" class="secondary-button" id="cancelMedModal">취소</button><button type="submit" class="primary-button" id="saveMedicationButton">약 저장</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="photo-viewer" id="photoViewer"><button type="button" id="closePhotoViewer" aria-label="사진 닫기">×</button><img id="photoViewerImage" alt="첨부 사진 크게 보기"></div>
+  <input type="file" id="importFile" accept="application/json,.json">
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="care-core.js?v=20261120-quick-care-1"></script>
+  <script src="household-bridge.js?v=20261121-restore-1"></script>
+  <script src="household.js?v=20261121-restore-1"></script>
+</body>
+</html>
+
