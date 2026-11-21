@@ -681,6 +681,7 @@
       let currentType = 'laundry';
       let editingItem = null;
       let formSnapshot = '';
+      let medFormSnapshot = '';
       let editingMedicineId = null;
       let editingRoutineId = null;
       let expiryFilter = 'all';
@@ -1482,9 +1483,26 @@
         syncMedEndDateMin();
         renderMedTimeInputs(med?.times?.length ? med.times : ['08:00']);
         document.getElementById('dayPicker').innerHTML = weekdays.map((day, index) => `<label class="day-option"><input type="checkbox" name="medDay" value="${index}" ${(med?.days || [0,1,2,3,4,5,6]).includes(index) ? 'checked' : ''}><span>${day}</span></label>`).join('');
+        medFormSnapshot = currentMedFormState();
         document.getElementById('medModalBackdrop').classList.add('open');
         document.body.style.overflow = 'hidden';
         setTimeout(() => document.getElementById('medName').focus(), 30);
+      }
+      // 약 입력값 전체를 문자열로 만들어 열었을 때와 비교 (저장하지 않은 입력이 있는지 확인용)
+      function currentMedFormState() {
+        return JSON.stringify([
+          document.getElementById('medName').value,
+          document.getElementById('medDose').value,
+          document.getElementById('medStartDate').value,
+          document.getElementById('medEndDate').value,
+          [...document.querySelectorAll('input[name="medTime"]')].map(input => input.value),
+          [...document.querySelectorAll('input[name="medDay"]:checked')].map(input => input.value),
+        ]);
+      }
+      // 닫기 버튼·배경·Esc로 닫을 때 입력 내용이 바뀌었다면 확인 후에만 닫음 (기록 입력창과 같은 동작)
+      function requestCloseMedicationModal() {
+        if (currentMedFormState() !== medFormSnapshot && !window.confirm('저장하지 않은 내용이 있어요. 입력한 내용을 버리고 닫을까요?')) return;
+        closeMedicationModal();
       }
       // 종료일 달력에서 시작일 이전 날짜를 미리 막아 저장 전에 잘못된 기간을 알 수 있게 함 (저장 시 검사는 그대로 유지)
       function syncMedEndDateMin() {
@@ -1828,9 +1846,9 @@
       });
       document.getElementById('notificationButton').addEventListener('click', toggleNotifications);
       document.getElementById('addMedication').addEventListener('click', () => openMedicationModal());
-      document.getElementById('closeMedModal').addEventListener('click', closeMedicationModal);
-      document.getElementById('cancelMedModal').addEventListener('click', closeMedicationModal);
-      document.getElementById('medModalBackdrop').addEventListener('click', e => { if (e.target.id === 'medModalBackdrop') closeMedicationModal(); });
+      document.getElementById('closeMedModal').addEventListener('click', requestCloseMedicationModal);
+      document.getElementById('cancelMedModal').addEventListener('click', requestCloseMedicationModal);
+      document.getElementById('medModalBackdrop').addEventListener('click', e => { if (e.target.id === 'medModalBackdrop') requestCloseMedicationModal(); });
       document.getElementById('medForm').addEventListener('submit', saveMedication);
       document.getElementById('addMedTime').addEventListener('click', () => {
         const times = [...document.querySelectorAll('input[name="medTime"]')].map(input => input.value).filter(Boolean);
@@ -1890,7 +1908,7 @@
           // Escape는 가장 위에 열린 화면 하나만 닫음 (사진 > 약 > 기록 > 반복 일정 수정).
           // 열려 있지 않은 다른 화면의 입력값을 지우거나 포커스를 엉뚱한 곳으로 옮기지 않게 함
           if (document.getElementById('photoViewer').classList.contains('open')) { closePhoto(); return; }
-          if (document.getElementById('medModalBackdrop').classList.contains('open')) { closeMedicationModal(); return; }
+          if (document.getElementById('medModalBackdrop').classList.contains('open')) { requestCloseMedicationModal(); return; }
           if (document.getElementById('modalBackdrop').classList.contains('open')) { requestCloseModal(); return; }
           // 반복 일정 수정은 반복 관리 화면에서만 취소함. 다른 화면에서 Esc를 눌러 조용히 입력값이 사라지지 않게 함
           if (editingRoutineId && currentView === 'routines') {
