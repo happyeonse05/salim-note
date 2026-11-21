@@ -6,12 +6,13 @@
   <meta name="theme-color" content="#faf8f2">
   <meta name="description" content="빨래 남은 시간, 내가 체크한 복용 시각, 이번 주 지출을 짧게 확인하는 오늘 살림">
   <title>오늘 살림</title>
-  <link rel="stylesheet" href="styles.css?v=20261121-placeholder-contrast-1">
+  <link rel="stylesheet" href="styles.css?v=20261121-skip-nav-1">
   <script src="core.js?v=20261120-quick-care-1" defer></script>
   <script src="care-core.js?v=20261120-quick-care-1" defer></script>
   <script src="app.js?v=20261121-history-empty-1" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#mainNav">주 메뉴로 바로가기</a>
   <div class="app">
     <header class="brand"><span>오늘 살림</span><span class="local-mark">내 기기에만 저장</span></header>
     <div id="storageError" class="notice" role="alert" hidden></div>
@@ -44,7 +45,7 @@
         <div class="backup-tools"><button id="backupButton" class="text-link">내 기록 백업</button><span>계정 없이 이 브라우저에 저장돼요.</span></div>
       </section>
     </main>
-    <nav class="bottom-nav" aria-label="주 메뉴"><button data-screen="today" aria-current="page">오늘</button><button data-screen="add" class="add-nav">＋ 기록</button><button data-screen="history">지난 기록</button></nav>
+    <nav id="mainNav" class="bottom-nav" aria-label="주 메뉴" tabindex="-1"><button data-screen="today" aria-current="page">오늘</button><button data-screen="add" class="add-nav">＋ 기록</button><button data-screen="history">지난 기록</button></nav>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button id="toastUndo" hidden>취소</button></div>
   <noscript><p class="notice">이 앱을 사용하려면 JavaScript를 켜 주세요. 기록은 브라우저 안에 저장됩니다.</p></noscript>
