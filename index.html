@@ -199,6 +199,8 @@
     .day-option input { position: absolute; opacity: 0; }
     .day-option span { display: grid; place-items: center; width: 34px; height: 31px; border: 1px solid var(--line); border-radius: 7px; color: #758079; font-size: 9px; cursor: pointer; }
     .day-option input:checked + span { border-color: #b7cbbf; background: #eaf2ed; color: var(--green); font-weight: 700; }
+    /* 요일 체크박스는 투명하게 숨겨져 있어서, 키보드 포커스는 눈에 보이는 요일 칩에 링으로 표시 */
+    .day-option input:focus-visible + span { outline: 3px solid var(--green); outline-offset: 2px; }
     .photo-preview { display: flex; align-items: center; gap: 9px; margin-top: 8px; color: var(--muted); font-size: 9px; }
     .photo-preview img { width: 58px; height: 58px; border: 1px solid var(--line); border-radius: 7px; object-fit: cover; }
     .record-photo { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; overflow: hidden; border: 0; border-radius: 8px; background: #f0f3f1; color: var(--green); font-size: 17px; }
