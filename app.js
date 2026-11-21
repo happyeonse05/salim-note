@@ -114,7 +114,7 @@
     $('historyRows').innerHTML = entries.length ? entries.map(item => {
       const date = C.day(item.at); const heading = date !== previousDate ? `${previousDate ? '</div>' : ''}<h2 class="history-date">${esc(dateText(date))}</h2><div class="history-group">` : ''; previousDate = date;
       return heading + item.html;
-    }).join('') + '</div>' : '<p class="quiet-empty">아직 남긴 기록이 없어요.</p>';
+    }).join('') + '</div>' : `<p class="quiet-empty">${({ all: '아직 남긴 기록이 없어요.', expense: '아직 남긴 지출이 없어요.', medicine: '아직 복용 체크 기록이 없어요.', laundry: '아직 빨래를 넌 기록이 없어요.' })[filter]}</p>`;
     $('medicineSettings').innerHTML = state.medicines.length ? state.medicines.map(med => row(esc(med.name), `${esc((med.times || []).join(' · '))}${Array.isArray(med.days) && med.days.length < 7 ? ' · 등록한 요일에 표시' : ''}`, `<button class="small-button" data-edit-med="${esc(med.id)}">수정</button><button class="small-button" data-notify-med="${esc(med.id)}" aria-pressed="${Boolean(state.notifyMeds[med.id])}">알림 ${state.notifyMeds[med.id] ? '켜짐' : '꺼짐'}</button>`)).join('') : '<p class="small-note">등록한 약이 없어요.</p>';
     $('budgetAmount').value = state.budget || '';
     renderCosmetics();
