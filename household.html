@@ -103,6 +103,7 @@
         <div class="panel-heading"><div><h2 class="panel-title" id="listTitle">기록</h2><p class="panel-caption" id="listCaption"></p></div><button class="primary-button" id="listAdd"><span class="plus">＋</span> 새 기록</button></div>
         <div class="list-toolbar"><div class="search-wrap"><span>⌕</span><input class="search-input" type="search" id="searchInput" placeholder="이름이나 메모 검색" aria-label="기록 검색"></div><select class="sort-select" id="sortSelect" aria-label="정렬"><option value="newest">최근 기록순</option><option value="oldest">오래된 순</option></select></div>
 
+        <p class="panel-caption" id="searchResultCount" role="status" aria-live="polite" aria-atomic="true"></p>
         <div class="record-list" id="recordList"></div>
         <div class="storage-note">기록·사진·일정은 이 브라우저에 저장됩니다. <button class="text-button" id="backupInline">백업 파일 만들기</button></div>
       </section>
@@ -171,7 +172,7 @@
 
   <script src="care-core.js?v=20261120-quick-care-1"></script>
   <script src="household-bridge.js?v=20261121-restore-1"></script>
-  <script src="household.js?v=20261121-restore-1"></script>
+  <script src="household.js?v=20261121-search-count-1"></script>
 </body>
 </html>
 

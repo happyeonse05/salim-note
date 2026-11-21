@@ -429,6 +429,7 @@
         const q = document.getElementById('searchInput').value.trim().toLowerCase();
         let items = viewItems().filter(item => !q || [item.name, item.note, labels[item.kind]].filter(Boolean).join(' ').toLowerCase().includes(q));
         if (document.getElementById('sortSelect').value === 'oldest') items = items.reverse();
+        document.getElementById('searchResultCount').textContent = `${q ? '검색 결과' : '전체'} ${items.length}건`;
         const list = document.getElementById('recordList');
         if (!items.length) {
           list.innerHTML = `<div class="panel empty-state"><strong>${q ? '검색 결과 없음' : '기록 없음'}</strong><span>${q ? '다른 검색어를 입력하세요.' : '새 기록 버튼으로 항목을 추가하세요.'}</span></div>`;
