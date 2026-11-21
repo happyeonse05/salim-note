@@ -96,6 +96,10 @@
     .activity-list { display: grid; }
     .activity-row { display: flex; align-items: center; min-height: 58px; border-top: 1px solid #f0efe8; }
     .activity-row:first-child { border-top: 0; }
+    /* 대시보드 목록 항목은 누르면 수정 창이 열림 */
+    .alert-row[data-edit], .activity-row[data-edit] { cursor: pointer; }
+    .alert-row[data-edit]:hover { filter: brightness(.97); }
+    [data-edit]:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; border-radius: 9px; }
     .activity-icon { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; margin-right: 11px; border-radius: 11px; background: #f1f2ec; font-size: 14px; }
     .activity-main { min-width: 0; flex: 1; }
     .activity-name { overflow: hidden; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
@@ -1153,12 +1157,12 @@
           // 아래 '사용기한 전체 보기' 버튼은 data-open-view로 사용기한 화면으로 이동
           alertList.innerHTML = alerts.slice(0,4).map(item => {
             const due = deadlineLabel(item);
-            return `<div class="alert-row ${due.className === 'urgent' || due.className === 'past' ? 'urgent' : ''}"><div class="alert-symbol" aria-hidden="true">${icons[item.kind]}</div><div class="alert-meta"><div class="alert-name">${escapeHtml(item.name)}</div><div class="alert-date">${labels[item.kind]} · ${formatDate(item.deadline, false)}까지</div></div><span class="deadline ${due.className}">${due.text}</span></div>`;
+            return `<div class="alert-row ${due.className === 'urgent' || due.className === 'past' ? 'urgent' : ''}" data-edit="${escapeHtml(item.id)}" role="button" tabindex="0" aria-label="${escapeHtml(item.name)} 수정"><div class="alert-symbol" aria-hidden="true">${icons[item.kind]}</div><div class="alert-meta"><div class="alert-name">${escapeHtml(item.name)}</div><div class="alert-date">${labels[item.kind]} · ${formatDate(item.deadline, false)}까지</div></div><span class="deadline ${due.className}">${due.text}</span></div>`;
           }).join('') + (hiddenCount > 0 ? `<p class="list-more">외 ${hiddenCount}건이 더 있어요. <button class="link-button" type="button" data-open-view="expiry">사용기한 전체 보기 →</button></p>` : '');
         }
         const activity = sortedRecords().slice(0,4);
         const activityList = document.getElementById('activityList');
-        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row"><div class="activity-icon" aria-hidden="true">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state activity-empty"><div class="activity-empty-copy"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div><img src="assets/salim-empty-optimized.png" alt="" aria-hidden="true"></div>`;
+        activityList.innerHTML = activity.length ? activity.map(item => `<div class="activity-row" data-edit="${escapeHtml(item.id)}" role="button" tabindex="0" aria-label="${escapeHtml(item.name)} 수정"><div class="activity-icon" aria-hidden="true">${icons[item.kind]}</div><div class="activity-main"><div class="activity-name">${escapeHtml(item.name)}</div><div class="activity-sub">${formatDate(activityDate(item), false)}${item.note ? ` · ${escapeHtml(item.note)}` : ''}</div></div><span class="activity-kind">${labels[item.kind]}</span></div>`).join('') : `<div class="empty-state activity-empty"><div class="activity-empty-copy"><strong>기록 없음</strong><span>기록 추가에서 새 항목을 입력하세요.</span></div><img src="assets/salim-empty-optimized.png" alt="" aria-hidden="true"></div>`;
       }
       function viewItems() {
         if (currentView === 'expiry') return sortedRecords(records.filter(x => (x.kind === 'food' || x.kind === 'cosmetic') && (expiryFilter === 'all' || expiryBucket(x) === expiryFilter)));
@@ -1609,6 +1613,22 @@
       document.getElementById('alertList').addEventListener('click', e => {
         const link = e.target.closest('[data-open-view]');
         if (link) switchView(link.dataset.openView);
+      });
+      // 대시보드의 기한 임박·최근 기록 항목을 누르거나 Enter·Space를 누르면 수정 창이 열림
+      ['alertList', 'activityList'].forEach(id => {
+        const container = document.getElementById(id);
+        const openRecord = row => {
+          const item = records.find(x => x.id === row.dataset.edit);
+          if (item) openModal(item.kind, item);
+        };
+        container.addEventListener('click', e => {
+          const row = e.target.closest('[data-edit]');
+          if (row) openRecord(row);
+        });
+        container.addEventListener('keydown', e => {
+          const row = e.target.closest('[data-edit]');
+          if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openRecord(row); }
+        });
       });
       // 반복 일정 미리보기의 "전체 보기" 링크도 다시 그려지므로 컨테이너에서 클릭을 받음
       document.getElementById('dashboardRoutineList').addEventListener('click', e => {
