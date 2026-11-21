@@ -115,6 +115,8 @@
     .search-input:focus { border-color: #9cab9c; box-shadow: 0 0 0 3px rgba(65,91,73,.08); }
     .sort-select { height: 39px; padding: 0 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: #777e76; font-size: 10px; }
     .record-list { display: grid; gap: 9px; }
+    .expiry-group-title { margin: 4px 2px 0; color: var(--muted); font-size: 11px; font-weight: 750; }
+    .expiry-group-title:not(:first-child) { margin-top: 10px; }
     .record-card { display: flex; align-items: center; gap: 11px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); box-shadow: var(--shadow); }
     .record-icon { display: grid; place-items: center; flex: 0 0 41px; height: 41px; border-radius: 13px; background: var(--green-pale); font-size: 18px; }
     .record-copy { min-width: 0; flex: 1; }
@@ -1230,6 +1232,20 @@
           const clearButton = q ? '<button class="secondary-button" type="button" data-clear-search>검색 지우기</button>' : '';
           // 검색 결과가 없을 때만 스크린리더가 안내 문구를 바로 읽도록 status 역할을 줌
           list.innerHTML = `<div class="panel empty-state"${q ? ' role="status"' : ''}><strong>${emptyTitle}</strong><span>${emptyBody}</span>${clearButton}</div>`;
+          return;
+        }
+        // 사용기한을 기한 순서로 볼 때는 지남 · 7일 이내 · 그 이후 제목을 붙여 구간을 나눠 보여줌
+        if (currentView === 'expiry' && sortSelect.value === 'deadline') {
+          const bucketTitles = { expired: '지남', week: '7일 이내', later: '그 이후' };
+          const bucketCounts = { expired: 0, week: 0, later: 0 };
+          items.forEach(item => { bucketCounts[expiryBucket(item)] += 1; });
+          let lastBucket = '';
+          list.innerHTML = items.map(item => {
+            const bucket = expiryBucket(item);
+            const heading = bucket !== lastBucket ? `<h3 class="expiry-group-title">${bucketTitles[bucket]} ${bucketCounts[bucket]}건</h3>` : '';
+            lastBucket = bucket;
+            return heading + recordCard(item);
+          }).join('');
           return;
         }
         list.innerHTML = items.map(item => recordCard(item)).join('');
