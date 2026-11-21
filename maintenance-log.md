@@ -430,3 +430,5 @@
 - 검증: node --test tests/*.test.cjs 17개 통과 및 app/household/bridge 문법 검사 통과. localhost8960에서 오늘→하단 장바구니 진입, 테스트 품목 담기/체크/장보기 기록 전환, 사용기한·화장품·사진 입력창, 복용량/요일/기간 입력창, 반복 관리·캘린더 버튼, 빨래·옷 구매 메뉴, 오늘 복귀 및 기존 빠른 기록 화면을 확인했습니다. 테스트 기록은 localhost에만 저장했습니다.
 - 반영 파일: index.html, app.js, styles.css, household.html, household.css, household.js, household-bridge.js, tests/household.test.cjs, README.md, maintenance-log.md. 기존 원격 트리를 바탕으로 필요한 파일만 반영하며 Git 설정은 유지합니다. 기존 이미지 자산은 원격에 존재하므로 다시 업로드하지 않습니다.
 - 배포 결과: main 반영 및 GitHub Pages 배포 확인 진행 중. 완료 후 결과를 추가 기록합니다.
+
+- 최종 코드 배포 확인 2026-11-21 21:14:02 KST: 복구 커밋 3b307e87bcd4ab8f2c2e09a082f876a6ea30bd8e, Pages 실행 44902773073 completed/success. 실제 사이트에서 살림 관리 6개 링크와 하단 장바구니 표시, 장바구니 화면 진입·담기/기록 버튼과 기존 이미지 정상 표시를 시각 확인했습니다. 실제 사이트에 테스트 기록은 저장하지 않았습니다. 지난 기록의 예산·알림·백업과 추가 복구 링크도 로컬에서 확인했습니다. 이 최종 검증 기록은 별도 문서 커밋으로 반영합니다.
