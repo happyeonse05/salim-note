@@ -184,6 +184,8 @@
     .med-card-main { min-width: 0; flex: 1; }
     .med-card-name { font-size: 12px; font-weight: 700; }
     .med-card-info { margin-top: 4px; color: var(--muted); font-size: 9px; line-height: 1.6; }
+    .med-today { color: var(--green); font-weight: 700; }
+    .med-today.done { color: var(--muted); }
     .med-card-actions { display: flex; gap: 3px; }
     .med-time-row { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
     .med-time-row input { flex: 1; }
@@ -841,7 +843,11 @@
           const times = (med.times || []).slice().sort().join(' · ');
           const days = (med.days || [0,1,2,3,4,5,6]).map(d => weekdays[d]).join(' ');
           const range = [med.startDate ? `${formatDate(med.startDate, false)} 시작` : '', med.endDate ? `${formatDate(med.endDate, false)} 종료` : ''].filter(Boolean).join(' · ');
-          return `<article class="med-card"><div class="record-icon" aria-hidden="true">＋</div><div class="med-card-main"><div class="med-card-name">${escapeHtml(med.name)}</div><div class="med-card-info">${escapeHtml(med.dose || '복용량 미입력')} · ${escapeHtml(times)}<br>${escapeHtml(days)}${range ? ` · ${escapeHtml(range)}` : ''}</div></div><div class="med-card-actions"><button class="edit-button" data-edit-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 수정" title="수정">✎</button><button class="delete-button" data-delete-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 삭제" title="삭제">×</button></div></article>`;
+          // 오늘 복용 일정이 있는 약만 진행 상황(예: 오늘 1/2회)을 함께 보여줌
+          const todayTimes = scheduledToday(med) ? (med.times || []) : [];
+          const doneToday = todayTimes.filter(time => medicationChecks[doseKey(med.id, today, time)]).length;
+          const todayProgress = todayTimes.length ? ` · <span class="med-today ${doneToday === todayTimes.length ? 'done' : ''}">오늘 ${doneToday}/${todayTimes.length}회${doneToday === todayTimes.length ? ' 완료' : ''}</span>` : '';
+          return `<article class="med-card"><div class="record-icon" aria-hidden="true">＋</div><div class="med-card-main"><div class="med-card-name">${escapeHtml(med.name)}</div><div class="med-card-info">${escapeHtml(med.dose || '복용량 미입력')} · ${escapeHtml(times)}<br>${escapeHtml(days)}${range ? ` · ${escapeHtml(range)}` : ''}${todayProgress}</div></div><div class="med-card-actions"><button class="edit-button" data-edit-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 수정" title="수정">✎</button><button class="delete-button" data-delete-med="${escapeHtml(med.id)}" aria-label="${escapeHtml(med.name)} 삭제" title="삭제">×</button></div></article>`;
         }).join('');
       }
       function renderMedications() {
