@@ -596,7 +596,7 @@
       <section class="routine-section" id="routineSection">
         <div class="panel-heading"><div><h2 class="panel-title">반복 관리</h2><p class="panel-caption">정기적으로 챙길 집안일을 등록하고 다음 일정을 관리합니다.</p></div><button class="secondary-button" id="exportCalendar" type="button">캘린더 내보내기</button></div>
         <section class="panel routine-form-panel">
-          <div class="routine-form-heading"><div><h2 class="panel-title">일정 추가</h2><p class="panel-caption">세탁조 청소, 필터 교체, 침구 세탁 등을 등록하세요.</p></div><button class="secondary-button" id="cancelRoutineEdit" type="button" hidden>수정 취소</button></div>
+          <div class="routine-form-heading"><div><h2 class="panel-title" id="routineFormTitle">일정 추가</h2><p class="panel-caption">세탁조 청소, 필터 교체, 침구 세탁 등을 등록하세요.</p></div><button class="secondary-button" id="cancelRoutineEdit" type="button" hidden>수정 취소</button></div>
           <form class="routine-form" id="routineForm">
             <div class="field"><label for="routineName">할 일</label><input id="routineName" name="name" required maxlength="80" placeholder="예: 정수기 필터 교체"></div>
             <div class="field"><label for="routineNextDate">다음 날짜</label><input id="routineNextDate" name="nextDate" type="date" required></div>
@@ -1001,6 +1001,7 @@
       function resetRoutineForm() {
         // 수정 모드를 빠져나와 입력란을 비우고 등록 상태로 되돌림
         editingRoutineId = null;
+        document.getElementById('routineFormTitle').textContent = '일정 추가';
         document.getElementById('routineForm').reset();
         document.getElementById('routineNextDate').value = today;
         document.getElementById('routineSubmitButton').innerHTML = '<span class="plus" aria-hidden="true">＋</span> 일정 등록';
@@ -1046,6 +1047,7 @@
         document.getElementById('routineName').value = item.name;
         document.getElementById('routineNextDate').value = item.nextDate;
         document.getElementById('routineCadence').value = item.cadence || 'P1M';
+        document.getElementById('routineFormTitle').textContent = '일정 수정';
         document.getElementById('routineSubmitButton').innerHTML = '수정 저장';
         document.getElementById('cancelRoutineEdit').hidden = false;
         document.getElementById('routineForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
