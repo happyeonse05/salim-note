@@ -1646,7 +1646,10 @@
       });
       document.getElementById('listAdd').addEventListener('click', () => openModal(currentView === 'expiry' ? 'food' : (['laundry','shopping','clothes'].includes(currentView) ? currentView : 'laundry')));
       document.getElementById('shoppingItemInput').addEventListener('keydown', event => {
-        if (event.key === 'Enter') { event.preventDefault(); addShoppingListItem(); }
+        if (event.key === 'Enter') { event.preventDefault(); addShoppingListItem(); return; }
+        // Esc clears a half-typed item name without leaving the field (same as the record search box).
+        // 입력 중인 품목명은 Esc로 바로 지움 (검색창과 같은 동작)
+        if (event.key === 'Escape' && event.target.value) { event.preventDefault(); event.stopPropagation(); event.target.value = ''; }
       });
       document.getElementById('addShoppingItem').addEventListener('click', addShoppingListItem);
       document.getElementById('shoppingItems').addEventListener('change', event => {
